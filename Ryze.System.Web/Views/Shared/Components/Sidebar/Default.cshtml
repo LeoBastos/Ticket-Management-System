@@ -1,0 +1,134 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Ryze.System.Domain.Entity.Identity
+
+@* @model Dictionary<StatusEnum, int> *@
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+
+@{
+
+    if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User);
+    }
+}
+
+<!-- Sidebar -->
+<div class="sidebar" data-background-color="dark">
+    <div class="sidebar-logo">
+        <!-- Logo Header -->
+        <div class="logo-header" data-background-color="dark">
+            <a href="index.html" class="logo">
+                <img src="assets/img/kaiadmin/logo_light.svg"
+                     alt="navbar brand"
+                     class="navbar-brand"
+                     height="20" />
+            </a>
+            <div class="nav-toggle">
+                <button class="btn btn-toggle toggle-sidebar">
+                    <i class="gg-menu-right"></i>
+                </button>
+                <button class="btn btn-toggle sidenav-toggler">
+                    <i class="gg-menu-left"></i>
+                </button>
+            </div>
+            <button class="topbar-toggler more">
+                <i class="gg-more-vertical-alt"></i>
+            </button>
+        </div>
+        <!-- End Logo Header -->
+    </div>
+    <div class="sidebar-wrapper scrollbar scrollbar-inner">
+        <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+                <li class="nav-item">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-home"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+                @if (User.IsInRole("Cliente"))
+                {
+                    <li class="nav-item">
+                        <a class="sub-item" asp-area="" asp-controller="Ticket" asp-action="Index">
+                            <i class="fas fa-envelope"></i>
+                            <p>Meus Tickets</p>
+                        </a>
+                    </li>
+                }
+                @if (User.IsInRole("Admin") || User.IsInRole("Gerente") || User.IsInRole("Funcionario"))
+                {
+                    <li class="nav-item active">
+                        <a data-bs-toggle="collapse" href="#base">
+                            <i class="fas fa-envelope"></i>
+                            <p>Tickets</p>
+                            <span class="caret"></span>
+                        </a>
+                        <div class="collapse show" id="base">
+                            <ul class="nav nav-collapse">
+
+
+                                <li>
+                                    <a class="sub-item" asp-area="" asp-controller="Ticket" asp-action="Index">
+                                        <span class="sub-item">Todos os Tickets</span>
+                                    </a>
+                                </li>
+                                <li class="submenu">
+                                    <a data-bs-toggle="collapse" href="#subnav1" class="" aria-expanded="true">
+                                        <span class="sub-item">Meus Tickets</span>
+                                        <span class="caret"></span>
+                                    </a>
+                                    <div class="collapse show" id="subnav1" style="">
+                                        <ul class="nav nav-collapse subnav">
+                                            <li>
+                                                <a class="sub-item" asp-area="" asp-controller="Ticket" asp-action="TicketsByUserAndStatusOpen">
+                                                    <span class="sub-item">Em Aberto</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="sub-item" asp-area="" asp-controller="Ticket" asp-action="TicketsByUserAndStatusInProgress">
+                                                    <span class="sub-item">Em Andamento</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="sub-item" asp-area="" asp-controller="Ticket" asp-action="TicketsByUserAndStatusClosed">
+                                                    <span class="sub-item">Finalizados</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </li>
+                }
+                @if (User.IsInRole("Admin") || User.IsInRole("Gerente"))
+                {
+                    <li class="nav-section">
+                        <span class="sidebar-mini-icon">
+                            <i class="fa fa-ellipsis-h"></i>
+                        </span>
+                        <h4 class="text-section">Administrativo</h4>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-light" asp-area="Admin" asp-controller="AdminUsers" asp-action="Index">
+                            <i class="fas fa-users"></i>
+                            <p>Gerenciar Usuários</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" asp-area="Admin" asp-controller="AdminRoles" asp-action="Index">
+                            <i class="far fa-id-card"></i>
+                            <p>Gerenciar Roles</p>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- End Sidebar -->

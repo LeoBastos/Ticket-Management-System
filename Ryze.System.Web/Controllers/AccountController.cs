@@ -7,9 +7,11 @@ using Ryze.System.Domain.Entity.Identity;
 using Ryze.System.Web.Models.Accounts;
 using Ryze.System.Web.Models;
 using Ryze.System.Web.helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Ryze.System.Web.Controllers
 {
+    
     public class AccountController : BaseController
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -110,79 +112,79 @@ namespace Ryze.System.Web.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Login", "Account");
         }
+		[HttpGet]
+		public async Task<IActionResult> Edit(string id)
+		{
+			var breadcrumbs = new List<BreadcrumbItem>
+			{
+				new BreadcrumbItem { Text = "Home", Url = Url.Action("Index", "Home"), IsActive = false },
+				new BreadcrumbItem { Text = "Conta", Url = Url.Action("Index", "Account"), IsActive = false },
+				new BreadcrumbItem { Text = "Editar Conta", Url = Url.Action("Edit", "Account"), IsActive = true }
+			};
 
-        [HttpGet]
-        public async Task<IActionResult> Edit(string id)
-        {
-            var breadcrumbs = new List<BreadcrumbItem>
-            {
-                new BreadcrumbItem { Text = "Home", Url = Url.Action("Index", "Home"), IsActive = false },
-                new BreadcrumbItem { Text = "Conta", Url = Url.Action("Index", "Account"), IsActive = false },
-                new BreadcrumbItem { Text = "Editar Conta", Url = Url.Action("Edit", "Account"), IsActive = true }
-            };
+			ViewData["Breadcrumbs"] = breadcrumbs;
 
-            ViewData["Breadcrumbs"] = breadcrumbs;
+			var user = await _userManager.FindByIdAsync(id);
 
-            var user = await _userManager.FindByIdAsync(id);
+			if (user == null)
+			{
+				return NotFound();
+			}
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+			var model = new EditProfileViewModel
+			{
+				Id = user.Id,              
+				Email = user.Email,
+				FullName = user.FullName,
+				UserAvatar = user.Avatar
+			};
 
-            var model = new EditProfileViewModel
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FullName = user.FullName,
-                UserAvatar = user.Avatar
-            };
+			return View(model);
+		}
 
-            return View(model);
-        }
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Edit(EditProfileViewModel model)
+		{
+			if (ModelState.IsValid)
+			{
+				var user = await _userManager.FindByIdAsync(model.Id);
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(EditProfileViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = await _userManager.FindByIdAsync(model.Id);
+				if (user == null)
+				{
+					return NotFound();
+				}
 
-                if (user == null)
-                {
-                    return NotFound();
-                }
+				var result = new ApplicationUserDTO
+				{
+					Id = model.Id,
+					FullName = model.FullName,                   
+					Email = model.Email,
+					Avatar = model.Avatar != null ? await FileHelper.UploadImage(model.Avatar) : user.Avatar,
+					IsClient = user.IsClient,
+					IsActive = user.IsActive,
+                    UserName = user.Email,
+                    NormalizedEmail = user.Email,
+                    NormalizedUserName = user.Email
+				};             
 
-                var result = new ApplicationUserDTO
-                {
-                    Id = model.Id,
-                    FullName = model.FullName,
-                    Email = model.Email,
-                    Avatar = model.Avatar != null ? await FileHelper.UploadImage(model.Avatar) : user.Avatar,
-                    IsClient = user.IsClient,
-                    IsActive = user.IsActive
-                };
+				await _userService.Update(result);
 
-                await _userService.Update(result);
+				TempData["Message"] = "Perfil atualizado com sucesso";			
 
-                TempData["Message"] = "Perfil atualizado com sucesso";               
+				return View(model);
+			}
 
-                return View(model);
-            }
+			var errors = ModelState.Values.SelectMany(v => v.Errors);
+			foreach (var error in errors)
+			{
+				Console.WriteLine(error.ErrorMessage);
+			}
 
-            var errors = ModelState.Values.SelectMany(v => v.Errors);
-            TempData["Errors"] = "Houve um erro ao Atualizar a conta ";
+			return View(model);
+		}
 
-            foreach (var error in errors)
-            {   
-                Console.WriteLine(error.ErrorMessage);
-            }
-
-            return View(model);
-        }
-
-        [HttpGet]
+		[HttpGet]
         public async Task<IActionResult> ChangePassword(string id)
         {
             var breadcrumbs = new List<BreadcrumbItem>

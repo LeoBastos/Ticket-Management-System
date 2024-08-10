@@ -1,0 +1,13 @@
+﻿@using Ryze.System.Web.Models.Tickets
+@model TicketViewModel
+
+<form asp-action="Forwarding" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="UserId" class="control-label">Encaminhar para</label>
+        <select asp-for="UserId" class="form-control" asp-items="ViewBag.Encaminhar"></select>
+        <span asp-validation-for="UserId" class="text-danger"></span>
+    </div>
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-primary">Encaminhar</button>
+</form>

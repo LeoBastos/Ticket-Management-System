@@ -3,47 +3,116 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Ryze.System.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Ryze.System.Web.styles.css" asp-append-version="true" />
+    <title>@ViewData["Title"] - Manager Tickets</title>
+
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/kaiadmin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/plugins.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/demo.css" asp-append-version="true" />
+    @*  <link rel="stylesheet" href="~/css/magnific-popup.css" asp-append-version="true" /> *@
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css" />
+
+    <link rel="stylesheet" href="~/System.Tickets.Web.styles.css" asp-append-version="true" />
+
+    <!-- Fonts and icons -->
+    <script src="~/js/plugin/webfont/webfont.min.js"></script>
+    <script>
+        WebFont.load({
+            google: { families: ["Public Sans:300,400,500,600,700"] },
+            custom: {
+                families: [
+                    "Font Awesome 5 Solid",
+                    "Font Awesome 5 Regular",
+                    "Font Awesome 5 Brands",
+                    "simple-line-icons",
+                ],
+                urls: ["@Url.Content("~/css/fonts.min.css")"],
+            },
+            active: function () {
+                sessionStorage.fonts = true;
+            },
+        });
+    </script>
+
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Ryze.System.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    <div class="wrapper">
+        @await Component.InvokeAsync("Sidebar")
+
+        <div class="main-panel">
+            <div class="main-header">
+                <div class="main-header-logo">
+                    <!-- Logo Header -->
+                    <div class="logo-header" data-background-color="dark">
+                        <a href="index.html" class="logo">
+                            <img src="assets/img/kaiadmin/logo_light.svg"
+                                 alt="navbar brand"
+                                 class="navbar-brand"
+                                 height="20" />
+                        </a>
+                        <div class="nav-toggle">
+                            <button class="btn btn-toggle toggle-sidebar">
+                                <i class="gg-menu-right"></i>
+                            </button>
+                            <button class="btn btn-toggle sidenav-toggler">
+                                <i class="gg-menu-left"></i>
+                            </button>
+                        </div>
+                        <button class="topbar-toggler more">
+                            <i class="gg-more-vertical-alt"></i>
+                        </button>
+                    </div>
+                    <!-- End Logo Header -->
+                </div>
+                @await Component.InvokeAsync("Navbar")
+            </div>
+            <div class="container">
+                <div class="page-inner">
+                    <div class="page-header">
+                        <h4 class="page-title">Dashboard</h4>
+                        @await Component.InvokeAsync("Breadcrumb", ViewData["Breadcrumbs"] as List<BreadcrumbItem>)
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8 col-sm-8 col-lg-8"></div>
+                        <div class="col-md-4 col-sm-4 col-lg-4">
+                            @await Component.InvokeAsync("Message", new { message = TempData["Message"] as string, success = TempData["Success"] as string, errors = TempData["Errors"] as string })
+                        </div>
+                    </div>
+
+                    @RenderBody()
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+            @await Html.PartialAsync("~/Views/Shared/Components/Footer/_Footer.cshtml")
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2024 - Ryze.System.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/core/jquery-3.7.1.min.js"></script>
+    <script src="~/js/core/popper.min.js"></script>
+    <script src="~/js/core/bootstrap.min.js"></script>
+    <script src="~/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+    <script src="~/js/plugin/sweetalert/sweetalert.min.js"></script>
+    <script src="~/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+    <script src="~/js/kaiadmin.min.js"></script>
+    @*  <script src="~/js/magnific-popup/jquery.magnific-popup.min.js"></script> *@
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            setTimeout(function () {
+                $('#message-container .message').each(function () {
+                    $(this).addClass('hidden');
+                });
+            }, 3000);
+        });
+    </script>
+
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+

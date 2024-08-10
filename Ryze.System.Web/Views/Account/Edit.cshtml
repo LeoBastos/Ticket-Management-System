@@ -1,0 +1,76 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Ryze.System.Domain.Entity.Identity
+@using Ryze.System.Web.Models.Accounts
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@model EditProfileViewModel
+
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+
+<div class="col-sm-6 col-md-6 col-lg-6">
+    <div class="col-md-6">
+        @if (ViewData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @ViewData["SuccessMessage"]
+            </div>
+        }
+
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Perfil</div>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />                
+                <div class="avatar-container">
+                    @if (!string.IsNullOrEmpty(Model.UserAvatar))
+                    {
+                        <div class="avatar avatar-xxl">
+                            <img class="avatar-img rounded-circle"
+                                 src="@(string.IsNullOrEmpty(Model.UserAvatar) ? Url.Content("~/images/noimage.png") : Url.Content(Model.UserAvatar))" alt="User Avatar" />
+                        </div>
+                    }
+                </div>
+                <div class="form-group">
+                    <label asp-for="Email" class="control-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="FullName" class="control-label"></label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Avatar" class="control-label"></label>
+                    <input asp-for="Avatar" type="file" class="form-control" />
+                    <span asp-validation-for="Avatar" class="text-danger"></span>
+                </div>
+                <hr />
+                <div class="form-group">
+                    <button type="submit" class="btn btn-secondary">Atualizar Perfil </button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-warning">Voltar</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

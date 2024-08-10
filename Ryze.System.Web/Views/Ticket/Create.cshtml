@@ -1,0 +1,142 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Ryze.System.Domain.Entity.Identity
+@using Ryze.System.Web.Models.Tickets
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@model CreateTicketViewModel
+
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    var isClient = user?.IsClient ?? false;
+
+    if (!isClient)
+    {
+
+        <div class="col-sm-6 col-md-6 col-lg-6">
+            <div class="card card-stats card-round">
+                <div class="card-header">
+                    <div class="card-title"> Cadastrar Novo Ticket</div>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="ClientId" />
+                        <input type="hidden" asp-for="UserId" />
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label"></label>
+                            <textarea asp-for="Description" class="form-control" placeholder="Descreva resumidamento seu problema"> </textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ClientImage" class="control-label"></label>
+                            <input asp-for="ClientImage" class="form-control" type="file" accept="image/png, image/jpeg, image/jpg" />
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Resolution" class="control-label"></label>
+                            <textarea asp-for="Resolution" class="form-control"></textarea>
+                            <span asp-validation-for="Resolution" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="UserImage" class="control-label"></label>
+                            <input asp-for="UserImage" type="file" class="form-control" accept="image/png, image/jpeg, image/jpg" />
+                            <span asp-validation-for="UserImage" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Status" class="control-label"></label>
+                            <select asp-for="Status" class="form-control" asp-items="@(new SelectList(ViewBag.StatusList, "Value", "Text"))"></select>
+
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Nivel" class="control-label"></label>
+                            <select asp-for="Nivel" class="form-control" asp-items="@(new SelectList(ViewBag.NivelList, "Value", "Text"))"></select>
+                            <span asp-validation-for="Nivel" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Priority" class="control-label"></label>
+                            <select asp-for="Priority" class="form-control" asp-items="@(new SelectList(ViewBag.PriorityList, "Value", "Text"))"></select>
+                            <span asp-validation-for="Priority" class="text-danger"></span>
+                        </div>
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="form-group">
+                                    <button class="btn btn-secondary" type="submit">Cadastrar</button>
+                                    <a asp-area="" asp-controller="Ticket" class="btn btn-info" asp-action="Index">Voltar</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    }
+    else if (isClient)
+    {
+        <div class="col-sm-6 col-md-6 col-lg-6">
+            <div class="card card-stats card-round">
+                <div class="card-header">
+                    <div class="card-title"> Cadastrar Novo Ticket</div>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" enctype="multipart/form-data" id="form-create-ticket">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="ClientId" />
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label"></label>
+                            <textarea asp-for="Description" class="form-control" placeholder="Descreva resumidamento seu problema"> </textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ClientImage" class="control-label"></label>
+                            <input asp-for="ClientImage" class="form-control" type="file" accept="image/png, image/jpeg, image/jpg" />
+                        </div>
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="form-group">
+                                    <button class="btn btn-secondary" type="submit" id="submitButton">
+                                        <span id="spinner" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></span>
+                                        Cadastrar
+                                    </button>
+                                    <a asp-area="" asp-controller="Ticket" class="btn btn-info" asp-action="Index">Voltar</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    }
+}
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('#form-create-ticket');
+            const submitButton = document.getElementById('submitButton');
+            const spinner = document.getElementById('spinner');
+
+            form.addEventListener('submit', function () {
+                submitButton.disabled = true;
+                spinner.style.display = 'inline-block';
+            });
+        });
+    </script>
+}

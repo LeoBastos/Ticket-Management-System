@@ -5,6 +5,7 @@ using Ryze.System.Domain.Entity.Identity;
 
 namespace Ryze.System.Web.Controllers
 {
+
     public class BaseController : Controller
     {
         protected readonly UserManager<ApplicationUser> _userManager;

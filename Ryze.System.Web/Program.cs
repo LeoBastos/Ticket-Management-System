@@ -48,27 +48,33 @@ namespace Ryze.System.Web
                     options.SlidingExpiration = true;
                 });
 
-
-            builder.Services.AddAuthorization(options =>
+            builder.Services.ConfigureApplicationCookie(options =>
             {
-                options.AddPolicy("RequireUserAdminGerenteRole",
-                     policy => policy.RequireRole("Cliente", "User", "Admin", "Gerente"));
+                options.LoginPath = "/Account/Login";
+                options.LogoutPath = "/Account/Logout";
+                options.AccessDeniedPath = "/Account/AccessDenied";
             });
 
-            builder.Services.AddAuthorization(options =>
-            {
-                options.AddPolicy("IsAdminClaimAccess",
-                    policy => policy.RequireClaim("IsAdmin", "true"));
+            //builder.Services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("RequireUserAdminGerenteRole",
+            //         policy => policy.RequireRole("Cliente", "User", "Admin", "Gerente"));
+            //});
 
-                options.AddPolicy("IsManagerClaimAccess",
-                    policy => policy.RequireClaim("IsManager", "true"));
+            //builder.Services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("IsAdminClaimAccess",
+            //        policy => policy.RequireClaim("IsAdmin", "true"));
 
-                options.AddPolicy("IsEmployeeClaimAccess",
-                    policy => policy.RequireClaim("IsEmployee", "true"));
+            //    options.AddPolicy("IsManagerClaimAccess",
+            //        policy => policy.RequireClaim("IsManager", "true"));
 
-                options.AddPolicy("IsClientClaimAccess",
-                    policy => policy.RequireClaim("IsClient", "true"));
-            });
+            //    options.AddPolicy("IsEmployeeClaimAccess",
+            //        policy => policy.RequireClaim("IsEmployee", "true"));
+
+            //    options.AddPolicy("IsClientClaimAccess",
+            //        policy => policy.RequireClaim("IsClient", "true"));
+            //});
 
             builder.Services.AddSingleton<IEmailSender>(new EmailSender(
                 smtpServer: "",
@@ -120,9 +126,9 @@ namespace Ryze.System.Web
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapControllerRoute(
-                name: "MinhaArea",
-                pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
+            //app.MapControllerRoute(
+            //    name: "MinhaArea",
+            //    pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
 
             app.MapControllerRoute(
                 name: "default",

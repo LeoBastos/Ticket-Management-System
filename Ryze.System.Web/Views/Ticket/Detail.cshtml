@@ -1,0 +1,145 @@
+﻿@using Ryze.System.Application.DTO.Tickets
+@model TicketDTO
+
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+
+
+<div class="col-sm-6 col-md-6 col-lg-6">
+    <div class="card">
+        <div class="card-header">
+            <h4>Detalhes do Ticket</h4>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">ID</dt>
+                <dd class="col-sm-9">@Model.Id</dd>
+                <dt class="col-sm-3">Cliente</dt>
+                <dd class="col-sm-9">@Model.ClientName</dd>
+                <dt class="col-sm-3">Descrição</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+
+                @if (!string.IsNullOrEmpty(Model.ClientImage))
+                {
+                    <dt class="col-sm-3">Imagem do Cliente</dt>
+                    <dd class="col-sm-9">
+                        <div class="avatar">
+                            <a class="image-popup-vertical-fit" href="@Model.ClientImage">
+                                <img src="@Model.ClientImage" alt="Imagem do Cliente" class="avatar-img rounded" />
+                            </a>
+
+                        </div>
+                    </dd>
+                }
+
+                <dt class="col-sm-3">Data de Abertura</dt>
+                <dd class="col-sm-9">@Model.OpeningDate.ToString("dd/MM/yyyy")</dd>
+
+                @if (!string.IsNullOrEmpty(Model.Resolution))
+                {
+                    <dt class="col-sm-3">Resolução</dt>
+                    <dd class="col-sm-9">@Model.Resolution</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.UserImage))
+                {
+                    <dt class="col-sm-3">Imagem do Funcionário</dt>
+                    <dd class="col-sm-9">
+                        <div class="avatar">
+                            <a class="image-popup-vertical-fit" href="@Model.UserImage">
+                                <img src="@Model.UserImage" alt="Imagem do Cliente" class="avatar-img rounded" />
+                            </a>
+
+                        </div>
+                    </dd>
+                }
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    @if (@Model.Status.ToString() == "EmAberto")
+                    {
+                        <span class="badge badge-info"> Em Aberto </span>
+                    }
+                    else if (@Model.Status.ToString() == "EmAndamento")
+                    {
+                        <span class="badge badge-warning"> Em Andamento</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-danger"> Fechado</span>
+                    }
+
+                </dd>
+
+                <dt class="col-sm-3">Nível</dt>
+                <dd class="col-sm-9">
+                    @if (@Model.Nivel.ToString() == "Nivel1")
+                    {
+                        <span class="badge badge-info">Nivel 1</span>
+                    }
+                    else if (@Model.Nivel.ToString() == "Nivel2")
+                    {
+                        <span class="badge badge-secondary">Nivel 2</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-danger">Nivel 3</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">Prioridade</dt>
+                <dd class="col-sm-9">
+                    @if (@Model.Priority.ToString() == "Baixa")
+                    {
+                        <span class="badge badge-info">Baixa</span>
+                    }
+                    else if (@Model.Priority.ToString() == "Media")
+                    {
+                        <span class="badge badge-warning">Média</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-danger">Alta</span>
+                    }
+                </dd>
+
+                @if (Model.ClosingDate.HasValue)
+                {
+                    <dt class="col-sm-3">Data de Fechamento</dt>
+                    <dd class="col-sm-9">@Model.ClosingDate?.ToString("dd/MM/yyyy")</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.UserName))
+                {
+                    <dt class="col-sm-3">Funcionário</dt>
+                    <dd class="col-sm-9">@Model.UserName</dd>
+                }
+            </dl>
+        </div>
+    </div>
+
+</div>
+
+<p>
+    <a asp-area="" asp-controller="Ticket" class="btn btn-secondary" asp-action="Index">Voltar</a>
+</p>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            $('.image-popup-vertical-fit').magnificPopup({
+                type: 'image',
+                closeOnContentClick: true,
+                mainClass: 'mfp-img-mobile',
+                image: {
+                    verticalFit: true
+                }
+
+            });
+        });
+    </script>
+}

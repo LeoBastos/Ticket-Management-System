@@ -1,0 +1,21 @@
+﻿@model List<BreadcrumbItem>
+
+@if (Model != null && Model.Any())
+{
+    <ul class="breadcrumbs">
+        @foreach (var item in Model)
+        {
+            <li class="nav-home">
+                <a href="@item.Url" class="@(item.IsActive ? "active" : "")">
+                    @item.Text
+                </a>
+            </li>
+            @if (item != Model.Last())
+            {
+                <li class="separator">
+                    <i class="icon-arrow-right"></i>
+                </li>
+            }
+        }
+    </ul>
+}

@@ -1,0 +1,108 @@
+﻿@using Ryze.System.Web.Models.Accounts
+@model RegisterViewModel
+
+@{
+    Layout = null;
+}
+
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Manager Tickets</title>
+
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/kaiadmin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/plugins.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/demo.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/System.Tickets.Web.styles.css" asp-append-version="true" />
+
+</head>
+<body class="login bg-primary">
+    <div class="wrapper wrapper-login">
+        <div class="container container-signup animated fadeIn" style="display: block !important;">
+            <h3 class="text-center">Sign Up</h3>
+            <div class="login-form">
+                <form method="post" id="register-client">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="form-group">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" class="form-control" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Password"></label>
+                        <div class="position-relative">
+                            <input asp-for="Password" class="form-control" />
+                            <div class="show-password">
+                                <i class="icon-eye"></i>
+                            </div>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="ConfirmPassword"></label>
+                        <div class="position-relative">
+                            <input asp-for="ConfirmPassword" class="form-control" />
+                            <div class="show-password">
+                                <i class="icon-eye"></i>
+                            </div>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                    <div class="row form-action">
+                        <div class="col-md-6">
+                            <a href="#" id="show-signin" class="btn btn-danger btn-link w-100 fw-bold">Cancel</a>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-secondary w-100 fw-bold" type="submit" id="submitButton">
+                                <span id="spinner" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></span>
+                                Registrar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="~/js/core/jquery-3.7.1.min.js"></script>
+    <script src="~/js/core/popper.min.js"></script>
+    <script src="~/js/core/bootstrap.min.js"></script>
+    <script src="~/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+    <script src="~/js/plugin/sweetalert/sweetalert.min.js"></script>
+    <script src="~/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+    <script src="~/js/kaiadmin.min.js"></script>
+
+    @section Scripts {
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.querySelector('#register-client');
+                const submitButton = document.getElementById('submitButton');
+                const spinner = document.getElementById('spinner');
+
+                form.addEventListener('submit', function () {
+                    submitButton.disabled = true;
+                    spinner.style.display = 'inline-block';
+                });
+            });
+        </script>
+    }
+</body>
+</html>
+
+
+
+

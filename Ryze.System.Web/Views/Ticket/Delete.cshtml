@@ -1,0 +1,57 @@
+﻿@using Ryze.System.Application.DTO.Tickets
+@model TicketDTO
+
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+
+<div class="card">
+    <div class="card-header">
+        Tem certeza que deseja excluir este ticket?
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Id)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Id)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Description)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Description)
+            </dd>
+        </dl>
+    </div>
+    <div class="card-footer">
+        <form asp-action="Delete" id="form-delete-ticket">
+            <input type="hidden" asp-for="Id" />
+            <button class="btn btn-danger" type="submit" id="submitButton">
+                <span id="spinner" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></span>
+                Deletar
+            </button>
+            <a asp-area="" asp-controller="Ticket" class="btn btn-info" asp-action="Index">Voltar</a>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('#form-delete-ticket');
+            const submitButton = document.getElementById('submitButton');
+            const spinner = document.getElementById('spinner');
+
+            form.addEventListener('submit', function () {
+                submitButton.disabled = true;
+                spinner.style.display = 'inline-block';
+            });
+        });
+    </script>
+}

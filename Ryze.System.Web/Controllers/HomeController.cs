@@ -1,21 +1,29 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Ryze.System.Domain.Entity.Identity;
 using Ryze.System.Web.Models;
 using System.Diagnostics;
 
 namespace Ryze.System.Web.Controllers
 {
-    public class HomeController : Controller
+
+    [Authorize]
+    public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager)
+            : base(userManager)
         {
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+
+            var model = await GetUserDetailsAsync();
+            return View(model);
         }
 
         public IActionResult Privacy()

@@ -1,0 +1,185 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Ryze.System.Domain.Entity.Identity
+@using Ryze.System.Web.Models.Tickets
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@model EditTicketViewModel
+
+
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    var isClient = user?.IsClient ?? false;
+
+
+    if (!isClient)
+    {
+        <div class="col-sm-7 col-md-7 col-lg-7">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"> Todos os Tickets</div>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" enctype="multipart/form-data">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <input type="hidden" asp-for="ClientId" value="@Model.ClientId" />
+                        <input type="hidden" asp-for="UserId" value="@user.Id" />
+                        <div class="form-group row">
+                            <div class="col-md-6 col-lg-6">
+                                <label asp-for="OpeningDate" class="control-label"></label>
+                                <input asp-for="OpeningDate" class="form-control" disabled />
+                            </div>
+                            <div class="col-md-6 col-lg-6">
+                                @if (Model.ClosingDate.HasValue)
+                                {
+                                    <label asp-for="ClosingDate" class="control-label"></label>
+                                    <input asp-for="ClosingDate" class="form-control" disabled />
+                                }
+                                else
+                                {
+                                    <label asp-for="ClosingDate" class="control-label"></label>
+                                    <input asp-for="ClosingDate" class="form-control" disabled />
+                                    <input type="hidden" asp-for="ClosingDate" />
+                                }
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-12 col-lg-12">
+                                <label asp-for="Description" class="control-label"></label>
+                                <textarea asp-for="Description" class="form-control" disabled></textarea>
+                                <input type="hidden" asp-for="Description" />
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 col-lg-6 mt-3">
+                                <label asp-for="ClientImage" class="control-label"></label>
+                                <a class="image-popup-vertical-fit" href="@Model.ClientImageUrl">
+                                    <img src="@Url.Content(@Model.ClientImageUrl)" alt="Client Avatar" class="image-popup-vertical-fit" style="max-width: 200px; height: auto;" />
+                                </a>
+
+                                <input type="hidden" asp-for="ClientImageUrl" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-12 col-lg-12">
+                                <label asp-for="Resolution" class="control-label"></label>
+                                <textarea asp-for="Resolution" class="form-control"></textarea>
+                                <span asp-validation-for="Resolution" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-md-12 col-lg-12 mt-3">
+                                <label asp-for="UserImage" class="control-label"></label>
+                                <a class="image-popup-vertical-fit" href="@Model.UserImageUrl">
+                                    <img src="@Url.Content(@Model.UserImageUrl)" alt="Imagem Funcionario" class="image-popup-vertical-fit" style="max-width: 200px; height: auto;" />
+                                </a>
+
+                                <input type="hidden" asp-for="UserImage" />
+                            </div>
+                            <div class="col-md-6 col-lg-6">
+                                <label asp-for="UserImage" class="control-label"></label>
+                                <input asp-for="UserImage" type="file" class="form-control" />
+                                <span asp-validation-for="UserImage" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 col-lg-6">
+                                <label asp-for="Status" class="control-label"></label>
+                                <select asp-for="Status" class="form-control" asp-items="@(new SelectList(ViewBag.StatusList, "Value", "Text"))"></select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-6 col-lg-6">
+                                <label asp-for="Nivel" class="control-label"></label>
+                                <select asp-for="Nivel" class="form-control" asp-items="@(new SelectList(ViewBag.NivelList, "Value", "Text"))"></select>
+                                <span asp-validation-for="Nivel" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 col-lg-6">
+                                <label asp-for="Priority" class="control-label"></label>
+                                <select asp-for="Priority" class="form-control" asp-items="@(new SelectList(ViewBag.PriorityList, "Value", "Text"))"></select>
+                                <span asp-validation-for="Priority" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-secondary" type="submit" id="submitButton">
+                                <span id="spinner" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></span>
+                                Atualizar
+                            </button>
+
+                            <a asp-area="" asp-controller="Ticket" class="btn btn-info" asp-action="Index">Voltar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    else if (isClient)
+    {
+        <div class="col-sm-6 col-md-6 col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"> Todos os Tickets</div>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" enctype="multipart/form-data" id="form-edit-ticket">
+                        <input type="hidden" asp-for="ClientId" />
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label"></label>
+                            <input asp-for="Description" class="form-control" />
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ClientImage" class="control-label"></label>
+                            <input asp-for="ClientImage" class="form-control" type="file" />
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-secondary" type="submit" id="submitButton">
+                                <span id="spinner" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></span>
+                                Atualizar
+                            </button>
+
+                            <a asp-area="" asp-controller="Ticket" class="btn btn-info" asp-action="Index">Voltar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    }
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            $('.image-popup-vertical-fit').magnificPopup({
+                type: 'image',
+                closeOnContentClick: true,
+                mainClass: 'mfp-img-mobile',
+                image: {
+                    verticalFit: true
+                }
+
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('#form-edit-ticket');
+            const submitButton = document.getElementById('submitButton');
+            const spinner = document.getElementById('spinner');
+
+            form.addEventListener('submit', function () {
+                submitButton.disabled = true;
+                spinner.style.display = 'inline-block';
+            });
+        });
+    </script>
+}

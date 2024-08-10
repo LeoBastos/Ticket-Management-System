@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Ryze.System.Web.Controllers
 {
+    [Authorize]
     public class TicketController : BaseController
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -434,18 +436,27 @@ namespace Ryze.System.Web.Controllers
                 {
                     return Unauthorized();
                 }
+                if (user.IsClient)
+                {
+					ticket.ClientId = model.ClientId;
+					ticket.ClientImage = model.ClientImage != null ? FileHelper.UploadImage(model.ClientImage).Result : ticket.ClientImage;
+					ticket.Description = model.Description;
+                }
+                else
+                {
+					ticket.ClientId = model.ClientId;
+					ticket.ClientImage = model.ClientImage != null ? FileHelper.UploadImage(model.ClientImage).Result : ticket.ClientImage;
+					ticket.Description = model.Description;
+					ticket.UserImage = model.UserImage != null ? FileHelper.UploadImage(model.UserImage).Result : ticket.UserImage;
+					ticket.Status = model.Status;
+					ticket.Nivel = model.Nivel;
+					ticket.Priority = model.Priority;
+					ticket.Resolution = model.Resolution;
+					ticket.UserId = user.Id;
 
-                ticket.ClientId = model.ClientId;
-                ticket.ClientImage = model.ClientImage != null ? FileHelper.UploadImage(model.ClientImage).Result : ticket.ClientImage;
-                ticket.Description = model.Description;
-                ticket.UserImage = model.UserImage != null ? FileHelper.UploadImage(model.UserImage).Result : ticket.UserImage;
-                ticket.Status = model.Status;
-                ticket.Nivel = model.Nivel;
-                ticket.Priority = model.Priority;
-                ticket.Resolution = model.Resolution;
-                ticket.UserId = user.Id;
+				}
 
-                if (model.Status.ToString() == "Fechado")
+				if (model.Status.ToString() == "Fechado")
                 {
                     ticket.ClosingDate = DateTime.Now;
                 }

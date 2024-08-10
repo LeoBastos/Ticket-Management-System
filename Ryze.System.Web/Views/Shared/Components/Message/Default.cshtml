@@ -1,0 +1,32 @@
+﻿@model MessageViewModel
+
+
+<div id="message-container">
+    @if (!string.IsNullOrEmpty(Model.Success))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>@Model.Success</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Errors))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>
+                @Model.Errors
+            </strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <strong>@Model.Message</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+</div>
+
+
