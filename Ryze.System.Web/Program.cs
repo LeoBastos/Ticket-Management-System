@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Ryze.System.Application.Mapping;
 using Ryze.System.Application.Services.Tickets;
@@ -12,6 +13,8 @@ using Ryze.System.Infra.Context;
 using Ryze.System.Infra.Identity;
 using Ryze.System.Infra.Repositories.Tickets;
 using Ryze.System.Infra.Repositories.Users;
+using Ryze.System.Web.helpers;
+using Ryze.System.Web.Mapping;
 
 namespace Ryze.System.Web
 {
@@ -67,8 +70,16 @@ namespace Ryze.System.Web
                     policy => policy.RequireClaim("IsClient", "true"));
             });
 
-            //Injection
-            builder.Services.AddScoped<ISeedUserRoleInitial, SeedUserRoleInitial>();            
+            builder.Services.AddSingleton<IEmailSender>(new EmailSender(
+                smtpServer: "",
+                smtpPort: 587,
+                smtpUser: "",
+                smtpPass: ""
+            ));
+
+
+            // Injection
+            builder.Services.AddScoped<ISeedUserRoleInitial, SeedUserRoleInitial>();
 
             builder.Services.AddScoped<ITicketService, TicketService>();
             builder.Services.AddScoped<ITicketRepository, TicketRepository>();
@@ -82,7 +93,7 @@ namespace Ryze.System.Web
 
 
             //Mapper
-            builder.Services.AddAutoMapper(typeof(ApplicationServiceMappings));
+            builder.Services.AddAutoMapper(typeof(ApplicationServiceMappings), typeof(ViewModelToDto));
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -128,7 +139,6 @@ namespace Ryze.System.Web
                     var service = scope?.ServiceProvider.GetService<ISeedUserRoleInitial>();
                     await service.SeedRolesAsync();
                     await service.SeedUsersAsync();
-
                 }
             }
 
