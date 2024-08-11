@@ -1,0 +1,136 @@
+﻿@using Ryze.System.Domain.Entity.Identity
+@using Ryze.System.Web.Areas.Admin.Models
+@model RoleEdit
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+
+<div class="col-md-12 col-lg-12">
+    <div class="card">
+        <div class="card-body">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <form method="post" id="roleForm">
+                <input type="hidden" name="roleName" value="@Model.Role.Name" />
+                <input type="hidden" name="roleId" value="@Model.Role.Id" />
+
+                <div class="d-flex justify-content-between">
+                    <div class="w-50 me-2">
+                        <h2>Usuarios</h2>
+                        <button type="button" class="btn btn-success mb-2" onclick="transferAll('nonMembers', 'members')"> Transferir Todos <i class="fas fa-angle-double-right"></i></button>
+                        <button type="button" class="btn btn-success mb-2" onclick="transferSelected('nonMembers', 'members')"> Transferir Selecionados <i class="fas fa-angle-right"></i></button>
+                        <select id="nonMembers" multiple class="form-select" size="10">
+                            @if (Model.NonMembers.Count() == 0)
+                            {
+                                <option disabled>Todos os usuários pertecem a esta role</option>
+                            }
+                            else
+                            {
+                                @foreach (ApplicationUser user in Model.NonMembers)
+                                {
+                                    <option value="@user.Id">@user.UserName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="w-50 ms-2">
+                        <h2>Role: @Model.Role.Name</h2>
+                        <button type="button" class="btn btn-success mb-2" onclick="transferAll('members', 'nonMembers')"> <i class="fas fa-angle-double-left"> Transferir Todos</i></button>
+                        <button type="button" class="btn btn-success mb-2" onclick="transferSelected('members', 'nonMembers')"><i class="fas fa-angle-left"> Transferir Selecionados</i></button>
+                        <select id="members" multiple class="form-select" size="10">
+                            @if (Model.Members.Count() == 0)
+                            {
+                                <option disabled>Não existem usuários nesta Role</option>
+                            }
+                            else
+                            {
+                                @foreach (ApplicationUser user in Model.Members)
+                                {
+                                    <option value="@user.Id">@user.UserName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="row">
+                        <div class="form-group">
+                            <button class="btn btn-secondary" type="submit" id="submitButton" onclick="prepareForm()">
+                                <span id="spinner" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></span>
+                                Salvar
+                            </button>                           
+                            <a asp-action="Index" class="btn btn-info">Retornar</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function transferAll(sourceId, targetId) {
+        const sourceSelect = document.getElementById(sourceId);
+        const targetSelect = document.getElementById(targetId);
+
+        while (sourceSelect.options.length > 0) {
+            const option = sourceSelect.options[0];
+            targetSelect.add(option);
+        }
+    }
+
+    function transferSelected(sourceId, targetId) {
+        const sourceSelect = document.getElementById(sourceId);
+        const targetSelect = document.getElementById(targetId);
+
+        const selectedOptions = Array.from(sourceSelect.selectedOptions);
+        selectedOptions.forEach(option => {
+            targetSelect.add(option);
+        });
+    }
+
+    function prepareForm() {
+        const addIdsContainer = document.createElement('div');
+        const deleteIdsContainer = document.createElement('div');
+
+        const addIds = Array.from(document.getElementById('members').options).map(option => option.value);
+        const deleteIds = Array.from(document.getElementById('nonMembers').options).map(option => option.value);
+
+        addIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'AddIds';
+            input.value = id;
+            addIdsContainer.appendChild(input);
+        });
+
+        deleteIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'DeleteIds';
+            input.value = id;
+            deleteIdsContainer.appendChild(input);
+        });
+
+        const form = document.getElementById('roleForm');
+        form.appendChild(addIdsContainer);
+        form.appendChild(deleteIdsContainer);
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('#roleForm');
+        const submitButton = document.getElementById('submitButton');
+        const spinner = document.getElementById('spinner');
+
+        form.addEventListener('submit', function () {
+            submitButton.disabled = true;
+            spinner.style.display = 'inline-block';
+        });
+    });
+</script>

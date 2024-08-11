@@ -1,0 +1,48 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model IdentityRole
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+<div class="col-sm-6 col-md-6 col-lg-6">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"> Confirma a exclusão desta role ?</div>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-2">
+                    Role:
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Name)
+                </dd>
+            </dl>
+
+            <form asp-action="Delete" id="form-delete-role">
+                <input type="hidden" asp-for="@Model.Id" />
+                <div class="form-group">
+                    <button class="btn btn-danger" type="submit" id="submitButton">
+                        <span id="spinner" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></span>
+                        Deletar Role
+                    </button>
+                    <a asp-action="Index" class="btn btn-info">Retornar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('#form-delete-role');
+        const submitButton = document.getElementById('submitButton');
+        const spinner = document.getElementById('spinner');
+
+        form.addEventListener('submit', function () {
+            submitButton.disabled = true;
+            spinner.style.display = 'inline-block';
+        });
+    });
+</script>

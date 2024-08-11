@@ -126,9 +126,9 @@ namespace Ryze.System.Web
             app.UseAuthentication();
             app.UseAuthorization();
 
-            //app.MapControllerRoute(
-            //    name: "MinhaArea",
-            //    pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
+            app.MapControllerRoute(
+                name: "MinhaArea",
+                pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
 
             app.MapControllerRoute(
                 name: "default",

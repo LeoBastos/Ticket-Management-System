@@ -1,17 +1,16 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
 using Ryze.System.Application.DTO.Users;
 using Ryze.System.Application.Services.Users;
 using Ryze.System.Domain.Entity.Identity;
-using Ryze.System.Web.Models.Accounts;
-using Ryze.System.Web.Models;
 using Ryze.System.Web.helpers;
-using Microsoft.AspNetCore.Authorization;
+using Ryze.System.Web.Models;
+using Ryze.System.Web.Models.Accounts;
 
 namespace Ryze.System.Web.Controllers
 {
-    
+
     public class AccountController : BaseController
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -112,79 +111,80 @@ namespace Ryze.System.Web.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Login", "Account");
         }
-		[HttpGet]
-		public async Task<IActionResult> Edit(string id)
-		{
-			var breadcrumbs = new List<BreadcrumbItem>
-			{
-				new BreadcrumbItem { Text = "Home", Url = Url.Action("Index", "Home"), IsActive = false },
-				new BreadcrumbItem { Text = "Conta", Url = Url.Action("Index", "Account"), IsActive = false },
-				new BreadcrumbItem { Text = "Editar Conta", Url = Url.Action("Edit", "Account"), IsActive = true }
-			};
 
-			ViewData["Breadcrumbs"] = breadcrumbs;
+        [HttpGet]
+        public async Task<IActionResult> Edit(string id)
+        {
+            var breadcrumbs = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem { Text = "Home", Url = Url.Action("Index", "Home"), IsActive = false },
+                new BreadcrumbItem { Text = "Conta", Url = Url.Action("Index", "Account"), IsActive = false },
+                new BreadcrumbItem { Text = "Editar Conta", Url = Url.Action("Edit", "Account"), IsActive = true }
+            };
 
-			var user = await _userManager.FindByIdAsync(id);
+            ViewData["Breadcrumbs"] = breadcrumbs;
 
-			if (user == null)
-			{
-				return NotFound();
-			}
+            var user = await _userManager.FindByIdAsync(id);
 
-			var model = new EditProfileViewModel
-			{
-				Id = user.Id,              
-				Email = user.Email,
-				FullName = user.FullName,
-				UserAvatar = user.Avatar
-			};
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-			return View(model);
-		}
+            var model = new EditProfileViewModel
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FullName = user.FullName,
+                UserAvatar = user.Avatar
+            };
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit(EditProfileViewModel model)
-		{
-			if (ModelState.IsValid)
-			{
-				var user = await _userManager.FindByIdAsync(model.Id);
+            return View(model);
+        }
 
-				if (user == null)
-				{
-					return NotFound();
-				}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditProfileViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByIdAsync(model.Id);
 
-				var result = new ApplicationUserDTO
-				{
-					Id = model.Id,
-					FullName = model.FullName,                   
-					Email = model.Email,
-					Avatar = model.Avatar != null ? await FileHelper.UploadImage(model.Avatar) : user.Avatar,
-					IsClient = user.IsClient,
-					IsActive = user.IsActive,
-                    UserName = user.Email,
-                    NormalizedEmail = user.Email,
-                    NormalizedUserName = user.Email
-				};             
+                if (user == null)
+                {
+                    return NotFound();
+                }
 
-				await _userService.Update(result);
+                var result = new ApplicationUserDTO
+                {
+                    Id = model.Id,
+                    FullName = model.FullName,
+                    Email = model.Email,
+                    Avatar = model.Avatar != null ? await FileHelper.UploadImage(model.Avatar) : user.Avatar,
+                    IsClient = user.IsClient,
+                    IsActive = user.IsActive,
+                    UserName = model.Email,
+                    NormalizedEmail = model.Email,
+                    NormalizedUserName = model.Email
+                };
 
-				TempData["Message"] = "Perfil atualizado com sucesso";			
+                await _userService.Update(result);
 
-				return View(model);
-			}
+                TempData["Success"] = "Perfil atualizado com sucesso";
 
-			var errors = ModelState.Values.SelectMany(v => v.Errors);
-			foreach (var error in errors)
-			{
-				Console.WriteLine(error.ErrorMessage);
-			}
+                return View(model);
+            }
 
-			return View(model);
-		}
+            var errors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var error in errors)
+            {
+                Console.WriteLine(error.ErrorMessage);
+            }
 
-		[HttpGet]
+            return View(model);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> ChangePassword(string id)
         {
             var breadcrumbs = new List<BreadcrumbItem>
@@ -230,7 +230,7 @@ namespace Ryze.System.Web.Controllers
             var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
             if (result.Succeeded)
             {
-                TempData["Message"] = "Senha alterada com sucesso.";
+                TempData["Success"] = "Senha alterada com sucesso.";
                 return RedirectToAction("Index", "Home");
             }
             else
@@ -278,7 +278,7 @@ namespace Ryze.System.Web.Controllers
                 TempData["Errors"] = $"Houve um erro ao trocar sua senha. {ex.Message}";
                 throw new Exception(ex.Message); // Console.WriteLine(ex.Message);
             }
-           
+
         }
 
         [HttpGet]
@@ -320,6 +320,7 @@ namespace Ryze.System.Web.Controllers
             }
 
             var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+
             if (result.Succeeded)
             {
                 return RedirectToAction("Login");
@@ -343,6 +344,6 @@ namespace Ryze.System.Web.Controllers
         public ActionResult AccessDenied()
         {
             return View();
-        }        
+        }
     }
 }

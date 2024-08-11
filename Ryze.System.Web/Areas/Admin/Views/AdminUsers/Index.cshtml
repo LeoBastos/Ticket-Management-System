@@ -1,0 +1,116 @@
+﻿@using Ryze.System.Web.Areas.Admin.Models
+
+@model ApplicationUserListViewModel
+
+
+@{
+    ViewData["Title"] = "RyzeSystem";
+}
+
+
+@if (Model.Users.Any())
+{    
+
+    <a asp-action="Register" asp-area="Admin" asp-controller="AdminUsers"
+       class="btn btn-secondary mb-3" style="width:auto">
+        Novo Usuário
+    </a>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Usuários</div>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Função</th>
+                        <th scope="col">Ativo?</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        <tr>
+                            <td style="display:none;">@user.Id</td>
+                            <td>
+                                @user.FullName
+                            </td>
+                            <td>@user.Email</td>
+                            <td>
+                                @foreach (var role in user.Roles)
+                                {
+                                    @if (role == "Admin")
+                                    {
+                                        <span class="badge badge-primary">Administrador</span> <br />
+                                    }
+                                    else if (role == "Gerente")
+                                    {
+                                        <span class="badge badge-success">Gerente</span> <br />
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Funcionário</span> <br />
+                                    }
+
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="badge badge-primary">Ativo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">Inativo</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="AdminChangePassword" asp-area="Admin" asp-controller="AdminUsers" asp-route-id="@user.Id">
+                                    <button class="btn btn-success btn-sm" type="button">Senha</button>
+                                </a>
+                                <a asp-action="UpdateUser" asp-area="Admin" asp-controller="AdminUsers" asp-route-id="@user.Id">
+                                    <button class="btn btn-warning btn-sm" type="button">Editar</button>
+                                </a>
+                                <a asp-action="DeleteUser" asp-area="Admin" asp-controller="AdminUsers" asp-route-id="@user.Id" method="get">
+                                    <button type="submit" class="btn btn-sm btn-danger">Deletar</button>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @await Component.InvokeAsync("Pagination", new
+                {
+                    totalItems = Model.TotalItems,
+                    currentPage = Model.PageNumber,
+                    pageSize = Model.PageSize,
+                    action = "Index",
+                    controller = "AdminUsers",
+                    Area = "Admin"
+                })
+
+        </div>
+    </div>
+}
+
+else
+{
+    <div class="card">
+        <div class="card-header">
+            Não existem usuários
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">
+                Clique no botão para criar um usuário
+            </h5>
+            <a class="btn btn-primary" style="width:auto"
+               asp-controller="AdminUsers" asp-area="Admin" asp-action="Register">
+                Novo Usuário
+            </a>
+        </div>
+    </div>
+}

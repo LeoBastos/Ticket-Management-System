@@ -9,9 +9,6 @@
     <link rel="stylesheet" href="~/css/kaiadmin.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/plugins.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/demo.css" asp-append-version="true" />
-    @*  <link rel="stylesheet" href="~/css/magnific-popup.css" asp-append-version="true" /> *@
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css" />
 
     <link rel="stylesheet" href="~/System.Tickets.Web.styles.css" asp-append-version="true" />
 
@@ -79,7 +76,6 @@
                             @await Component.InvokeAsync("Message", new { message = TempData["Message"] as string, success = TempData["Success"] as string, errors = TempData["Errors"] as string })
                         </div>
                     </div>
-
                     @RenderBody()
                 </div>
             </div>
@@ -94,12 +90,6 @@
     <script src="~/js/plugin/sweetalert/sweetalert.min.js"></script>
     <script src="~/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
     <script src="~/js/kaiadmin.min.js"></script>
-    @*  <script src="~/js/magnific-popup/jquery.magnific-popup.min.js"></script> *@
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
-
-
     <script>
         $(document).ready(function () {
             setTimeout(function () {
@@ -107,7 +97,6 @@
             }, 2000);
         });
     </script>
-
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

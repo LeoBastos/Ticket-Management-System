@@ -28,7 +28,7 @@
 <body class="login bg-primary">
     <div class="wrapper wrapper-login">
         <div class="container container-signup animated fadeIn" style="display: block !important;">
-            <h3 class="text-center">Sign Up</h3>
+            <h3 class="text-center">Registrar</h3>
             <div class="login-form">
                 <form method="post" id="register-client">
                     <div asp-validation-summary="All" class="text-danger"></div>
@@ -64,11 +64,11 @@
                     </div>
                     <div class="row form-action">
                         <div class="col-md-6">
-                            <a href="#" id="show-signin" class="btn btn-danger btn-link w-100 fw-bold">Cancel</a>
+                            <a href="#" id="show-signin" class="btn btn-danger btn-link w-100 fw-bold">Cancelar</a>
                         </div>
                         <div class="col-md-6">
                             <button class="btn btn-secondary w-100 fw-bold" type="submit" id="submitButton">
-                                <span id="spinner" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></span>
+                                <span id="spinner" class="spinner-border spinner-border-sm text-primary" style="display: none;"></span>
                                 Registrar
                             </button>
                         </div>
@@ -85,7 +85,7 @@
     <script src="~/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
     <script src="~/js/kaiadmin.min.js"></script>
 
-    @section Scripts {
+
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -99,7 +99,7 @@
                 });
             });
         </script>
-    }
+
 </body>
 </html>
 

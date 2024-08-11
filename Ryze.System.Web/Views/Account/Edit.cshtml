@@ -15,22 +15,13 @@
 {
     var user = await UserManager.GetUserAsync(User);
 
-<div class="col-sm-6 col-md-6 col-lg-6">
-    <div class="col-md-6">
-        @if (ViewData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success">
-                @ViewData["SuccessMessage"]
-            </div>
-        }
-
-    </div>
+<div class="col-sm-6 col-md-6 col-lg-6">   
     <div class="card">
         <div class="card-header">
             <div class="card-title">Perfil</div>
         </div>
         <div class="card-body">
-            <form asp-action="Edit" enctype="multipart/form-data">
+            <form asp-action="Edit" enctype="multipart/form-data" id="edit-acc">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <input type="hidden" asp-for="Id" />                
                 <div class="avatar-container">
@@ -59,7 +50,10 @@
                 </div>
                 <hr />
                 <div class="form-group">
-                    <button type="submit" class="btn btn-secondary">Atualizar Perfil </button>
+                    <button class="btn btn-secondary" type="submit" id="submitButton">
+                        <span id="spinner" class="spinner-border spinner-border-sm text-primary" style="display: none;"></span>
+                        Atualizar Perfil
+                    </button>                  
                     <a asp-controller="Home" asp-action="Index" class="btn btn-warning">Voltar</a>
                 </div>
             </form>
@@ -68,6 +62,19 @@
     </div>
 </div>
 }
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('#edit-acc');
+        const submitButton = document.getElementById('submitButton');
+        const spinner = document.getElementById('spinner');
+
+        form.addEventListener('submit', function () {
+            submitButton.disabled = true;
+            spinner.style.display = 'inline-block';
+        });
+    });
+</script>
 
 @section Scripts {
     @{
