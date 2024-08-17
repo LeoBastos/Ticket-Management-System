@@ -96,6 +96,10 @@ namespace Ryze.System.Web.Controllers
 
                 if (result.Succeeded)
                 {
+                    if (!user.IsClient)
+                    {
+                        return RedirectToAction("Index", "Ticket");
+                    }
                     return RedirectToAction("Index", "Home");
                 }
 

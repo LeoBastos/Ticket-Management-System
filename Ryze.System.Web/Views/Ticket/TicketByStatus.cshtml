@@ -95,7 +95,7 @@
                                             {
                                                 <span class="badge badge-info"> @Html.DisplayFor(modelItem => item.Status)</span>
                                             }
-                                            else if (item.Priority.ToString() == "EmAndamento")
+                                            else if (item.Status.ToString() == "EmAndamento")
                                             {
                                                 <span class="badge badge-warning"> @Html.DisplayFor(modelItem => item.Status)</span>
                                             }
@@ -120,7 +120,7 @@
                                                     <ul class="dropdown-menu" role="menu" style="z-index: 999;">
                                                         <li>
                                                             <a class="dropdown-item" href="" data-bs-toggle="modal" data-bs-target="#exampleModal" data-url="@Url.Action("ForwardingPartial", "Ticket", new { id = item.Id })">Encaminhar</a>
-                                                            <a asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id">Edit</a>
+                                                            <a asp-controller="Ticket" asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id">Editar</a>
                                                             <a asp-controller="Ticket" asp-action="Detail" class="dropdown-item" asp-route-id="@item.Id">Detalhes</a>
                                                             <div class="dropdown-divider"></div>
                                                             <a asp-action="Delete" class="dropdown-item" asp-route-id="@item.Id">Delete</a>
@@ -131,12 +131,12 @@
                                             @if (User.IsInRole("Funcionario"))
                                             {
                                                 <div class="btn-group dropdown hidden-caret">
-                                                    <button class="btn btn-primary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <button class="btn btn-secondary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                         <i class="fas fa-ellipsis-h"></i>
                                                     </button>
                                                     <ul class="dropdown-menu" role="menu" style="">
                                                         <li>
-                                                            <a asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id">Edit</a>
+                                                            <a asp-controller="Ticket" asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id">Editar</a>
                                                             <a asp-action="Detail" class="dropdown-item" asp-route-id="@item.Id">Detalhes</a>
                                                         </li>
                                                     </ul>
@@ -148,12 +148,12 @@
                                                 @if (item.Status.ToString() == "Fechado")
                                                 {
                                                     <div class="btn-group dropdown hidden-caret">
-                                                        <button class="btn btn-primary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <button class="btn btn-secondary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                             <i class="fas fa-ellipsis-h"></i>
                                                         </button>
                                                         <ul class="dropdown-menu" role="menu" style="">
                                                             <li>
-                                                                <a class="dropdown-item" href="#">Detalhes</a>
+                                                                <a asp-controller="Ticket" asp-action="Detail" class="dropdown-item" asp-route-id="@item.Id">Detalhes</a>
                                                             </li>
                                                         </ul>
                                                     </div>
@@ -161,13 +161,13 @@
                                                 else
                                                 {
                                                     <div class="btn-group dropdown hidden-caret">
-                                                        <button class="btn btn-primary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <button class="btn btn-secondary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                             <i class="fas fa-ellipsis-h"></i>
                                                         </button>
                                                         <ul class="dropdown-menu" role="menu" style="">
                                                             <li>
-                                                                <a class="dropdown-item" href="#">Editar</a>
-                                                                <a class="dropdown-item" href="#">Detalhes</a>
+                                                                <a asp-controller="Ticket" asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id">Editar</a>
+                                                                <a asp-controller="Ticket" asp-action="Detail" class="dropdown-item" asp-route-id="@item.Id">Detalhes</a>
                                                             </li>
                                                         </ul>
                                                     </div>
@@ -187,7 +187,7 @@
                             }
                         </tbody>
                     </table>
-                </div>
+                </div>              
             </div>
         </div>
     </div>

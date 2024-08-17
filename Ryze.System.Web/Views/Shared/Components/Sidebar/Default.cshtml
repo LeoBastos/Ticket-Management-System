@@ -21,7 +21,7 @@
         <!-- Logo Header -->
         <div class="logo-header" data-background-color="dark">
             <a href="index.html" class="logo">
-                <img src="assets/img/kaiadmin/logo_light.svg"
+                <img src="~/images/logo/logo_light.svg"
                      alt="navbar brand"
                      class="navbar-brand"
                      height="20" />
@@ -56,6 +56,25 @@
                             <i class="fas fa-envelope"></i>
                             <p>Meus Tickets</p>
                         </a>
+                        <div class="collapse show" id="subnav1" style="">
+                            <ul class="nav nav-collapse subnav">
+                                <li>
+                                    <a class="sub-item" asp-area="" asp-controller="Ticket" asp-action="TicketsByUserAndStatusOpen">
+                                        <span class="sub-item">Em Aberto</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="sub-item" asp-area="" asp-controller="Ticket" asp-action="TicketsByUserAndStatusInProgress">
+                                        <span class="sub-item">Em Andamento</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="sub-item" asp-area="" asp-controller="Ticket" asp-action="TicketsByUserAndStatusClosed">
+                                        <span class="sub-item">Finalizados</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 }
                 @if (User.IsInRole("Admin") || User.IsInRole("Gerente") || User.IsInRole("Funcionario"))
@@ -132,3 +151,4 @@
     </div>
 </div>
 <!-- End Sidebar -->
+

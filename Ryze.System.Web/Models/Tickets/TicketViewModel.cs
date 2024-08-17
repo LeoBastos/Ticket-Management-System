@@ -42,5 +42,10 @@ namespace Ryze.System.Web.Models.Tickets
 
         public virtual ApplicationUser Client { get; set; }
         public virtual ApplicationUser User { get; set; }
+
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public int TotalItems { get; set; }
+        public string SortOrder { get; set; }
     }
 }

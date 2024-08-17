@@ -20,3 +20,9 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+a .sorting {
+    color: #000000 !important;
+    list-style: none;
+}
+

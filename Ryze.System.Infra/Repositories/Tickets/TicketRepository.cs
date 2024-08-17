@@ -51,26 +51,92 @@ namespace Ryze.System.Infra.Repositories.Tickets
                 .ToListAsync();
         }
 
-        //public async Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserIdAsync(string userId)
-        //{
-        //    var tickets = await _ticketContext.Tickets
-        //        .Where(t => t.UserId == userId)
-        //        .GroupBy(t => t.Status)
-        //        .Select(g => new { Status = g.Key, Count = g.Count() })
-        //        .ToListAsync();
+        //dashboard
+        public async Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByAdminAsync()
+        {
+            var tickets = await _ticketContext.Tickets    
+               .Where(t => t.IsActive == true)
+               .GroupBy(t => t.Status)
+               .Select(g => new { Status = g.Key, Count = g.Count() })
+               .ToListAsync();
 
-        //    var ticketCounts = tickets.ToDictionary(t => t.Status, t => t.Count);
+            var ticketCounts = tickets.ToDictionary(t => t.Status, t => t.Count);
 
-        //    foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
-        //    {
-        //        if (!ticketCounts.ContainsKey(status))
-        //        {
-        //            ticketCounts[status] = 0;
-        //        }
-        //    }
+            foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
+            {
+                if (!ticketCounts.ContainsKey(status))
+                {
+                    ticketCounts[status] = 0;
+                }
+            }
 
-        //    return ticketCounts;
-        //}
+            return ticketCounts;
+        }
+
+        //dashboard
+        public async Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByClientIdAsync(string userId)
+        {            
+            var tickets = await _ticketContext.Tickets
+                .Where(t => t.ClientId == userId)
+                .GroupBy(t => t.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var ticketCounts = tickets.ToDictionary(t => t.Status, t => t.Count);
+
+            foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
+            {
+                if (!ticketCounts.ContainsKey(status))
+                {
+                    ticketCounts[status] = 0;
+                }
+            }
+
+            return ticketCounts;
+        }
+        //dashboard
+        public async Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByUserIdAsync(string userId)
+        {
+            var tickets = await _ticketContext.Tickets
+                .Where(t => t.UserId == userId)
+                .Where(t => t.IsActive == true)
+                .GroupBy(t => t.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var ticketCounts = tickets.ToDictionary(t => t.Status, t => t.Count);
+
+            foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
+            {
+                if (!ticketCounts.ContainsKey(status))
+                {
+                    ticketCounts[status] = 0;
+                }
+            }
+
+            return ticketCounts;
+        }
+
+        public async Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserIdAsync(string userId)
+        {
+            var tickets = await _ticketContext.Tickets
+                .Where(t => t.UserId == userId)
+                .GroupBy(t => t.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();           
+
+            var ticketCounts = tickets.ToDictionary(t => t.Status, t => t.Count);
+
+            foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
+            {
+                if (!ticketCounts.ContainsKey(status))
+                {
+                    ticketCounts[status] = 0;
+                }
+            }
+
+            return ticketCounts;
+        }
 
         public async Task<IEnumerable<Ticket>> GetTicketsAsync()
         {
@@ -122,11 +188,21 @@ namespace Ryze.System.Infra.Repositories.Tickets
         }
 
 
-        public async Task<IEnumerable<Ticket>> GetTicketsByUserIdAndStatus(string userId, StatusEnum status)
+        //return tickets por status por usuário
+        public async Task<IEnumerable<Ticket>> GetTicketsByUserIdAndStatusAsync(string userId, StatusEnum status)
         {
             return await _ticketContext.Tickets
                 .Where(p => p.IsActive == true)
                 .Where(t => t.UserId == userId && t.Status == status)
+                .ToListAsync();
+        }
+
+        //return tickets por status por cliente
+        public async Task<IEnumerable<Ticket>> GetTicketsByClientIdAndStatusAsync(string userId, StatusEnum status)
+        {
+            return await _ticketContext.Tickets
+                .Where(p => p.IsActive == true)
+                .Where(t => t.ClientId == userId && t.Status == status)
                 .ToListAsync();
         }
 
@@ -150,9 +226,28 @@ namespace Ryze.System.Infra.Repositories.Tickets
         public async Task<IEnumerable<Ticket>> GetTicketsByStatusAsync(string status)
         {
             return await _ticketContext.Tickets
-                    .Where(p => p.IsActive == true && p.Status.ToString() == status)
+                    .Where(p => p.IsActive == true && p.Status.ToString() == status)                    
                     .ToListAsync();
         }
+
+        //retorna qtd de paginas para paginação da pesquisa
+        public async Task<int> GetTotalTicketCountBySearchTermAsync(string searchTerm)
+        {
+            return await _ticketContext.Tickets
+                .Where(t => t.Client.FullName.Contains(searchTerm) || t.User.FullName.Contains(searchTerm))
+                .CountAsync();
+        }
+        //retorna resultado da pesquisa
+        public async Task<List<Ticket>> GetTicketsBySearchTermAsync(string searchTerm, int pageNumber, int pageSize)
+        {
+            return await _ticketContext.Tickets
+                .Where(t => t.Client.FullName.Contains(searchTerm) || t.User.FullName.Contains(searchTerm))
+                .OrderBy(t => t.OpeningDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
 
         #endregion
 

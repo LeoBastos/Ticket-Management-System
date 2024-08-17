@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -7,12 +8,14 @@ using Ryze.System.Application.DTO.Tickets;
 using Ryze.System.Application.Services.Tickets;
 using Ryze.System.Application.Services.Users;
 using Ryze.System.Domain.Entity.Identity;
+using Ryze.System.Domain.Entity.Tickets;
 using Ryze.System.Domain.Enum;
 using Ryze.System.Infra.Context;
 using Ryze.System.Web.helpers;
 using Ryze.System.Web.Models;
 using Ryze.System.Web.Models.Tickets;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Sockets;
 
 namespace Ryze.System.Web.Controllers
 {
@@ -22,18 +25,20 @@ namespace Ryze.System.Web.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserService _userService;
         private readonly ITicketService _ticketService;
+        private readonly IMapper _mapper;
 
         public TicketController(ApplicationDbContext context, IUserService userService,
-            ITicketService ticketService, UserManager<ApplicationUser> userManager)
+            ITicketService ticketService, UserManager<ApplicationUser> userManager, IMapper mapper)
             : base(userManager)
         {
             _ticketService = ticketService;
             _userManager = userManager;
             _userService = userService;
+            _mapper = mapper;
         }
 
 
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 20)
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
         {
             var breadcrumbs = new List<BreadcrumbItem>
             {
@@ -44,7 +49,6 @@ namespace Ryze.System.Web.Controllers
             ViewData["Breadcrumbs"] = breadcrumbs;
 
             var user = await _userManager.GetUserAsync(User);
-
             if (user == null) return Unauthorized();
 
             var viewModel = new TicketListViewModel
@@ -56,80 +60,14 @@ namespace Ryze.System.Web.Controllers
 
             if (user.IsClient)
             {
-                var totalItems = await _ticketService.GetTotalTicketCountByClientId(user.Id);
-                var items = await _ticketService.GetPaginatedTicketsByClientId(user.Id, pageNumber, pageSize);
-
-                viewModel.TotalItems = totalItems;
-
-                foreach (var ticket in items)
-                {
-                    var userName = await _userService.GetUserById(ticket.UserId);
-
-                    viewModel.Tickets.Add(new TicketViewModel
-                    {
-                        Id = ticket.Id,
-                        Description = ticket.Description,
-                        ClientImage = user.Avatar,
-                        OpeningDate = ticket.OpeningDate,
-                        Resolution = ticket.Resolution,
-                        UserImage = userName?.Avatar,
-                        Status = ticket.Status,
-                        Nivel = ticket.Nivel,
-                        Priority = ticket.Priority,
-                        ClosingDate = ticket.ClosingDate,
-                        ClientId = ticket.ClientId,
-                        UserId = ticket.UserId,
-                        ClientName = user.FullName,
-                        UserName = userName?.FullName ?? "Nenhum usuário atribuído"
-                    });
-                }
-
-                return View(viewModel);
+                await PopulateClientTicketsAsync(viewModel, user, pageNumber, pageSize);
             }
             else
             {
-                var totalItems = await _ticketService.GetTotalTicketCount();
-                var items = await _ticketService.GetPaginatedTickets(pageNumber, pageSize);
-
-                viewModel.TotalItems = totalItems;
-
-                var users = await _userManager.Users
-                    .Where(p => !p.IsClient && p.IsActive)
-                    .Select(u => new SelectListItem
-                    {
-                        Value = u.Id.ToString(),
-                        Text = u.UserName
-                    })
-                    .ToListAsync();
-
-                ViewBag.Encaminhar = new SelectList(users, "Value", "Text");
-
-                foreach (var ticket in items)
-                {
-                    var clientName = await _userService.GetUserById(ticket.ClientId);
-                    var userName = await _userService.GetUserById(ticket.UserId);
-
-                    viewModel.Tickets.Add(new TicketViewModel
-                    {
-                        Id = ticket.Id,
-                        Description = ticket.Description,
-                        ClientImage = clientName.Avatar,
-                        OpeningDate = ticket.OpeningDate,
-                        Resolution = ticket.Resolution,
-                        UserImage = userName?.Avatar,
-                        Status = ticket.Status,
-                        Nivel = ticket.Nivel,
-                        Priority = ticket.Priority,
-                        ClosingDate = ticket.ClosingDate,
-                        ClientId = ticket.ClientId,
-                        UserId = ticket.UserId,
-                        ClientName = clientName.FullName,
-                        UserName = userName?.FullName ?? "Nenhum usuário atribuído"
-                    });
-                }
-
-                return View(viewModel);
+                await PopulateOperatorTicketsAsync(viewModel, pageNumber, pageSize);
             }
+
+            return View(viewModel);
         }
 
         public async Task<IActionResult> GetTicketsByUserAndStatus(StatusEnum status)
@@ -138,36 +76,69 @@ namespace Ryze.System.Web.Controllers
 
             if (user == null) return Unauthorized();
 
-            var tickets = await _ticketService.GetTicketsByUserIdAndStatus(user.Id, status);
-
-            var viewModel = new List<TicketDTO>();
-
-            foreach (var ticket in tickets)
+            if (user.IsClient)
             {
-                var clientName = await _userService.GetUserById(ticket.ClientId);
-                var userName = await _userManager.FindByIdAsync(user.Id);
+                var tickets = await _ticketService.GetTicketsByClientIdAndStatus(user.Id, status);
 
-                viewModel.Add(new TicketDTO
+                var viewModel = new List<TicketDTO>();
+
+                foreach (var ticket in tickets)
                 {
-                    Id = ticket.Id,
-                    Description = ticket.Description,
-                    ClientImage = clientName.Avatar,
-                    OpeningDate = ticket.OpeningDate,
-                    Resolution = ticket.Resolution,
-                    UserImage = userName.Avatar,
-                    Status = ticket.Status,
-                    Nivel = ticket.Nivel,
-                    Priority = ticket.Priority,
-                    ClosingDate = ticket.ClosingDate,
-                    ClientId = ticket.ClientId,
-                    UserId = ticket.UserId,
-                    ClientName = clientName?.FullName,
-                    UserName = userName?.FullName ?? "Nenhum usuário atribuído"
-                });
+                    var clientName = await _userService.GetUserById(ticket.ClientId);
+                    var userName = await _userManager.FindByIdAsync(user.Id);
+
+                    viewModel.Add(new TicketDTO
+                    {
+                        Id = ticket.Id,
+                        Description = ticket.Description,
+                        ClientImage = clientName.Avatar,
+                        OpeningDate = ticket.OpeningDate,
+                        Resolution = ticket.Resolution,
+                        UserImage = userName.Avatar,
+                        Status = ticket.Status,
+                        Nivel = ticket.Nivel,
+                        Priority = ticket.Priority,
+                        ClosingDate = ticket.ClosingDate,
+                        ClientId = ticket.ClientId,
+                        UserId = ticket.UserId,
+                        ClientName = clientName?.FullName,
+                        UserName = userName?.FullName ?? "Nenhum usuário atribuído"
+                    });
+                }
+                return View("TicketByStatus", viewModel);
             }
+            else
+            {
+                var tickets = await _ticketService.GetTicketsByUserIdAndStatus(user.Id, status);
 
+                var viewModel = new List<TicketDTO>();
 
-            return View("TicketByStatus", viewModel);
+                foreach (var ticket in tickets)
+                {
+                    var clientName = await _userService.GetUserById(ticket.ClientId);
+                    var userName = await _userManager.FindByIdAsync(user.Id);
+
+                    viewModel.Add(new TicketDTO
+                    {
+                        Id = ticket.Id,
+                        Description = ticket.Description,
+                        ClientImage = clientName.Avatar,
+                        OpeningDate = ticket.OpeningDate,
+                        Resolution = ticket.Resolution,
+                        UserImage = userName.Avatar,
+                        Status = ticket.Status,
+                        Nivel = ticket.Nivel,
+                        Priority = ticket.Priority,
+                        ClosingDate = ticket.ClosingDate,
+                        ClientId = ticket.ClientId,
+                        UserId = ticket.UserId,
+                        ClientName = clientName?.FullName,
+                        UserName = userName?.FullName ?? "Nenhum usuário atribuído"
+                    });
+                }
+
+                return View("TicketByStatus", viewModel);
+            }            
         }
 
         public async Task<IActionResult> TicketsByUserAndStatusOpen()
@@ -209,6 +180,88 @@ namespace Ryze.System.Web.Controllers
             ViewData["Breadcrumbs"] = breadcrumbs;
 
             return await GetTicketsByUserAndStatus(StatusEnum.Fechado);
+        }
+               
+        [HttpGet]
+        public async Task<IActionResult> SortTickets(string sortOrder, string sortType)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null) return Unauthorized();
+
+            var tickets = new List<TicketViewModel>();
+
+            // Busca os tickets com base no tipo de usuário
+            var items = await _ticketService.GetTickets();
+
+            if (user.IsClient)
+            {
+                foreach (var ticket in items)
+                {
+                    var userName = await _userService.GetUserById(ticket.UserId);
+
+                    tickets.Add(new TicketViewModel
+                    {
+                        Id = ticket.Id,
+                        Description = ticket.Description,
+                        ClientImage = user.Avatar,
+                        OpeningDate = ticket.OpeningDate,
+                        Resolution = ticket.Resolution,
+                        UserImage = userName?.Avatar,
+                        Status = ticket.Status,
+                        Nivel = ticket.Nivel,
+                        Priority = ticket.Priority,
+                        ClosingDate = ticket.ClosingDate,
+                        ClientId = ticket.ClientId,
+                        UserId = ticket.UserId,
+                        ClientName = user.FullName,
+                        UserName = userName?.FullName ?? "Nenhum usuário atribuído"
+                    });
+                }
+            }
+            else
+            {
+                foreach (var ticket in items)
+                {
+                    var clientName = await _userService.GetUserById(ticket.ClientId);
+                    var userName = await _userService.GetUserById(ticket.UserId);
+
+                    tickets.Add(new TicketViewModel
+                    {
+                        Id = ticket.Id,
+                        Description = ticket.Description,
+                        ClientImage = clientName.Avatar,
+                        OpeningDate = ticket.OpeningDate,
+                        Resolution = ticket.Resolution,
+                        UserImage = userName?.Avatar,
+                        Status = ticket.Status,
+                        Nivel = ticket.Nivel,
+                        Priority = ticket.Priority,
+                        ClosingDate = ticket.ClosingDate,
+                        ClientId = ticket.ClientId,
+                        UserId = ticket.UserId,
+                        ClientName = clientName.FullName,
+                        UserName = userName?.FullName ?? "Nenhum usuário atribuído"
+                    });
+                }
+            }
+
+            // Ordenação com base no sortType
+            tickets = sortOrder == "asc" ? sortType switch
+            {
+                "Status" => tickets.OrderBy(t => t.Status).ToList(),
+                "Priority" => tickets.OrderBy(t => t.Priority).ToList(),
+                "OpeningDate" => tickets.OrderBy(t => t.OpeningDate).ToList(),
+                _ => tickets
+            } : sortType switch
+            {
+                "Status" => tickets.OrderByDescending(t => t.Status).ToList(),
+                "Priority" => tickets.OrderByDescending(t => t.Priority).ToList(),
+                "OpeningDate" => tickets.OrderByDescending(t => t.OpeningDate).ToList(),
+                _ => tickets
+            };
+
+            return PartialView("_TicketTablePartial", tickets);
         }
 
         [HttpGet]
@@ -466,22 +519,7 @@ namespace Ryze.System.Web.Controllers
                 TempData["Success"] = "Ticket editado com Sucesso!";
 
                 return RedirectToAction("Index");
-            }
-
-            var errors = new List<KeyValuePair<string, string>>();
-
-            foreach (var state in ModelState)
-            {
-                foreach (var error in state.Value.Errors)
-                {
-                    errors.Add(new KeyValuePair<string, string>(state.Key, error.ErrorMessage));
-                }
-            }
-            foreach (var error in errors)
-            {
-                ModelState.AddModelError(error.Key, error.Value);
-                TempData["Errors"] = $"Erro ao atualizar o Ticket: {error.Value}";
-            }
+            }            
 
             TempData["Errors"] = "Ocorreu um erro ao editar o ticket.";
 
@@ -616,6 +654,112 @@ namespace Ryze.System.Web.Controllers
             TempData["Success"] = $"Ticket deletado com Sucesso!";
 
             return RedirectToAction(nameof(Index));
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Search(string searchTerm, int pageNumber = 1, int pageSize = 10)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var tickets = await _ticketService.GetTicketsBySearchTerm(searchTerm, pageNumber, pageSize);
+
+            var viewModel = new TicketListViewModel
+            {                
+                SearchTerm = searchTerm,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Tickets = tickets.Select(ticket => new TicketViewModel
+                {
+                    Id = ticket.Id,
+                    Description = ticket.Description,
+                    ClientImage = ticket?.ClientImage,
+                    OpeningDate = ticket.OpeningDate,
+                    Resolution = ticket.Resolution,
+                    UserImage = ticket.User?.Avatar,
+                    Status = ticket.Status,
+                    Nivel = ticket.Nivel,
+                    Priority = ticket.Priority,
+                    ClosingDate = ticket.ClosingDate,
+                    ClientId = ticket.ClientId,
+                    UserId = ticket.UserId,
+                    ClientName = ticket.Client?.FullName,
+                    UserName = ticket.User?.FullName ?? "Nenhum usuário atribuído"
+                }).ToList()
+            };
+
+            return View("Index", viewModel); // Você pode reutilizar a View 'Index' ou criar uma nova View se preferir
+        }
+
+        private async Task PopulateClientTicketsAsync(TicketListViewModel viewModel, ApplicationUser user, int pageNumber, int pageSize)
+        {
+            viewModel.TotalItems = await _ticketService.GetTotalTicketCountByClientId(user.Id);
+            var tickets = await _ticketService.GetPaginatedTicketsByClientId(user.Id, pageNumber, pageSize);
+
+            foreach (var ticket in tickets)
+            {
+                var userName = await _userService.GetUserById(ticket.UserId);
+
+                viewModel.Tickets.Add(new TicketViewModel
+                {
+                    Id = ticket.Id,
+                    Description = ticket.Description,
+                    ClientImage = user.Avatar,
+                    OpeningDate = ticket.OpeningDate,
+                    Resolution = ticket.Resolution,
+                    UserImage = userName?.Avatar,
+                    Status = ticket.Status,
+                    Nivel = ticket.Nivel,
+                    Priority = ticket.Priority,
+                    ClosingDate = ticket.ClosingDate,
+                    ClientId = ticket.ClientId,
+                    UserId = ticket.UserId,
+                    ClientName = user.FullName,
+                    UserName = userName?.FullName ?? "Nenhum usuário atribuído"
+                });
+            }
+        }
+
+        private async Task PopulateOperatorTicketsAsync(TicketListViewModel viewModel, int pageNumber, int pageSize)
+        {
+            viewModel.TotalItems = await _ticketService.GetTotalTicketCount();
+            var tickets = await _ticketService.GetPaginatedTickets(pageNumber, pageSize);
+
+            var users = await _userManager.Users
+                .Where(p => !p.IsClient && p.IsActive)
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.UserName
+                })
+                .ToListAsync();
+
+            ViewBag.Encaminhar = new SelectList(users, "Value", "Text");
+
+            foreach (var ticket in tickets)
+            {
+                var clientName = await _userService.GetUserById(ticket.ClientId);
+                var userName = await _userService.GetUserById(ticket.UserId);
+
+                viewModel.Tickets.Add(new TicketViewModel
+                {
+                    Id = ticket.Id,
+                    Description = ticket.Description,
+                    ClientImage = clientName.Avatar,
+                    OpeningDate = ticket.OpeningDate,
+                    Resolution = ticket.Resolution,
+                    UserImage = userName?.Avatar,
+                    Status = ticket.Status,
+                    Nivel = ticket.Nivel,
+                    Priority = ticket.Priority,
+                    ClosingDate = ticket.ClosingDate,
+                    ClientId = ticket.ClientId,
+                    UserId = ticket.UserId,
+                    ClientName = clientName.FullName,
+                    UserName = userName?.FullName ?? "Nenhum usuário atribuído"
+                });
+            }
         }
 
         private string GetEnumDisplayName(Enum enumValue)

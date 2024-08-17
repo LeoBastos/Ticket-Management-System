@@ -1,0 +1,217 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Ryze.System.Domain.Entity.Identity
+@using Ryze.System.Web.Models.Tickets
+@using Ryze.System.Web.helpers
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> roleManager;
+@model List<TicketViewModel>
+
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    var isClient = user?.IsClient ?? false;
+
+
+<table class="table table-hover" style="min-height: auto;">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th style="width: 220px;">Cliente</th>
+            <th style="width: 260px;">Descrição</th>
+            <th style="width: 220px;">Usuário</th>
+            <th>
+                    <a href="#" id="sortPriority" class="sorting">
+                    Prioridade <i class="fas fa-sort"></i>
+                </a>
+            </th>
+            <th>
+                <a href="#" id="sortStatus" class="sorting">
+                    Status <i class="fas fa-sort"></i>
+                </a>
+            </th>
+            <th>
+                    <a href="#" id="sortDtOpen" class="sorting">
+                    Dt.Abertura <i class="fas fa-sort"></i>
+                </a>
+             </th>
+            <th>Dt.Fechamento</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>#@item.Id</td>
+                    <td style="white-space: nowrap;">
+                        <div class="avatar-sm">
+                            <img class="avatar-img rounded-circle"
+                                 src="@(string.IsNullOrEmpty(item.ClientImage) ? Url.Content("~/images/noimage.png") : Url.Content(item.ClientImage))" alt="User Avatar" />
+                            @Html.DisplayFor(modelItem => item.ClientName)
+                        </div>
+                    </td>
+                    <td>
+                        @item.Description.Truncate(25)
+                    </td>
+                    <td style="white-space: nowrap;">
+                        @if (item.UserImage != null)
+                        {
+                            <div class="avatar-sm">
+                                <img class="avatar-img  rounded-circle" alt="User Avatar"
+                                     src="@(string.IsNullOrEmpty(item.UserImage) ? Url.Content("~/images/noimage.png") : Url.Content(item.UserImage))" alt="User Avatar" />
+                                @Html.DisplayFor(modelItem => item.UserName)
+                            </div>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelItem => item.UserName)
+                        }
+
+                    </td>
+                    <td>
+                        @if (item.Priority.ToString() == "Baixa")
+                        {
+                            <span class="badge badge-info"> @Html.DisplayFor(modelItem => item.Priority)</span>
+                        }
+                        else if (item.Priority.ToString() == "Media")
+                        {
+                            <span class="badge badge-warning"> @Html.DisplayFor(modelItem => item.Priority)</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-danger"> @Html.DisplayFor(modelItem => item.Priority)</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.Status.ToString() == "EmAberto")
+                        {
+                            <span class="badge badge-info"> @Html.DisplayFor(modelItem => item.Status)</span>
+                        }
+                        else if (item.Status.ToString() == "EmAndamento")
+                        {
+                            <span class="badge badge-warning"> @Html.DisplayFor(modelItem => item.Status)</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-danger"> @Html.DisplayFor(modelItem => item.Status)</span>
+                        }
+                    </td>
+                    <td style="white-space: nowrap;">
+                        @Html.DisplayFor(modelItem => item.OpeningDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ClosingDate)
+                    </td>
+                    <td>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Gerente"))
+                        {
+                            <div class="btn-group btn-small dropdown hidden-caret">
+                                <button class="btn btn-secondary btn-small btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                                <ul class="dropdown-menu" role="menu" style="z-index: 999;">
+                                    <li>
+                                        <a class="dropdown-item" href="" data-bs-toggle="modal" data-bs-target="#exampleModal" data-url="@Url.Action("ForwardingPartial", "Ticket", new { id = item.Id })">Encaminhar</a>
+                                        <a asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id">Edit</a>
+                                        <a asp-action="Detail" class="dropdown-item" asp-route-id="@item.Id">Detalhes</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a asp-action="Delete" class="dropdown-item" asp-route-id="@item.Id">Delete</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        @if (User.IsInRole("Funcionario"))
+                        {
+                            <div class="btn-group dropdown hidden-caret">
+                                <button class="btn btn-secondary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                                <ul class="dropdown-menu" role="menu" style="">
+                                    <li>
+                                        @if (item.UserId == null)
+                                        {
+                                            <a class="dropdown-item" href="" data-bs-toggle="modal" data-bs-target="#takeTicket"
+                                               data-url="@Url.Action("TakeTicketPartial", "Ticket", new { id = item.Id })">Assumir Ticket</a>
+                                        }
+
+                                        <a asp-action="Detail" class="dropdown-item" asp-route-id="@item.Id">Detalhes</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+
+                        @if (User.IsInRole("Cliente"))
+                        {
+                            @if (item.Status.ToString() == "Fechado" || item.UserId != null)
+                            {
+                                <div class="btn-group dropdown hidden-caret">
+                                    <button class="btn btn-secondary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu" style="">
+                                        <li>
+                                            <a asp-action="Detail" class="dropdown-item" asp-route-id="@item.Id">Detalhes</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="btn-group dropdown hidden-caret">
+                                    <button class="btn btn-secondary btn-icon dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu" style="">
+                                        <li>
+                                            <a asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id">Edit</a>
+                                            <a asp-action="Detail" class="dropdown-item" asp-route-id="@item.Id">Detalhes</a>
+                                            <a asp-action="Delete" class="dropdown-item" asp-route-id="@item.Id">Delete</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            }
+
+                        }
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="9" class="text-center">Não foram encontrados dados.</td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+
+    
+
+
+    @section Scripts {
+   
+    <script>
+        $(document).ready(function () {
+            $('a[data-bs-toggle="modal"]').click(function (e) {
+                e.preventDefault();
+                var target = $(this).attr('data-bs-target');
+                var url = $(this).attr('data-url');
+
+                if (target === '#exampleModal') {
+                    $('#modal-content-placeholder').load(url);
+                } else if (target === '#takeTicket') {
+                    $('#modal-content-takeTicket').load(url);
+                }
+            });
+        });
+    </script>
+
+
+    }
+
+}

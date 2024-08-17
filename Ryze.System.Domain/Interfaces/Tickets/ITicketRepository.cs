@@ -9,7 +9,15 @@ namespace Ryze.System.Domain.Interfaces.Tickets
         Task<int> GetTotalCountAsync();
         Task<List<Ticket>> GetPaginatedTicketsAsync(int pageNumber, int pageSize);
 
-        //Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserIdAsync(string userId);
+        //dashboard
+        Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByAdminAsync();
+        //dashboard
+        Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByClientIdAsync(string userId);
+        //dashboard
+        Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByUserIdAsync(string userId); 
+
+
+        Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserIdAsync(string userId); 
 
         Task<int> GetTotalTicketCountByClientIdAsync(string clientId);
         Task<List<Ticket>> GetPaginatedTicketsByClientIdAsync(string clientId, int pageNumber, int pageSize);
@@ -25,11 +33,22 @@ namespace Ryze.System.Domain.Interfaces.Tickets
         Task<Ticket> GetTicketByClientIdAsync(string clientId);
         Task<Ticket> GetTicketByUserIdAsync(string userId);
 
-        Task<IEnumerable<Ticket>> GetTicketsByUserIdAndStatus(string userId, StatusEnum status);
+
+        //return tickets por status do usuário
+        Task<IEnumerable<Ticket>> GetTicketsByUserIdAndStatusAsync(string userId, StatusEnum status);
+
+       //return tickets por status do cliente
+        Task<IEnumerable<Ticket>> GetTicketsByClientIdAndStatusAsync(string userId, StatusEnum status);
 
         Task<IEnumerable<Ticket>> GetTicketsByStatusAsync(string status);
         Task<IEnumerable<Ticket>> GetTicketsByPriorityAsync(string priority);
         Task<IEnumerable<Ticket>> GetTicketsByNivelAsync(string nivel);
+
+        //retorna qtd de paginas para paginação da pesquisa
+        Task<int> GetTotalTicketCountBySearchTermAsync(string searchTerm);
+
+        //retorna resultado da pesquisa
+        Task<List<Ticket>> GetTicketsBySearchTermAsync(string searchTerm, int pageNumber, int pageSize);
 
         #endregion
 

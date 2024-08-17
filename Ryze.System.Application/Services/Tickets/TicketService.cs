@@ -43,20 +43,84 @@ namespace Ryze.System.Application.Services.Tickets
             return _mapper.Map<List<TicketDTO>>(result);
         }
 
-        //public async Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserId(string userId)
-        //{
-        //    var ticketCounts = await _ticketRepository.GetTicketCountsByUserIdAsync(userId);
 
-        //    foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
-        //    {
-        //        if (!ticketCounts.ContainsKey(status))
-        //        {
-        //            ticketCounts[status] = 0;
-        //        }
-        //    }
+        public async Task<TicketCountsResult> GetTicketDashboardCountsByAdmin()
+        {
+            var ticketCounts = await _ticketRepository.GetTicketDashboardCountsByAdminAsync();
+            
+            foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
+            {
+                if (!ticketCounts.ContainsKey(status))
+                {
+                    ticketCounts[status] = 0;
+                }
+            }
 
-        //    return ticketCounts;
-        //}
+            var total = ticketCounts.Values.Sum();
+
+            return new TicketCountsResult
+            {
+                StatusCounts = ticketCounts,
+                Total = total
+            };
+        }
+
+        public async Task<TicketCountsResult> GetTicketDashboardCountsByClientId(string userId)
+        {
+            var ticketCounts = await _ticketRepository.GetTicketDashboardCountsByClientIdAsync(userId);
+
+            foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
+            {
+                if (!ticketCounts.ContainsKey(status))
+                {
+                    ticketCounts[status] = 0;
+                }
+            }
+
+            var total = ticketCounts.Values.Sum();
+
+            return new TicketCountsResult
+            {
+                StatusCounts = ticketCounts,
+                Total = total
+            };
+        }
+
+        public async Task<TicketCountsResult> GetTicketDashboardCountsByUserId(string userId)
+        {
+            var ticketCounts = await _ticketRepository.GetTicketDashboardCountsByUserIdAsync(userId);
+
+            foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
+            {
+                if (!ticketCounts.ContainsKey(status))
+                {
+                    ticketCounts[status] = 0;
+                }
+            }
+
+            var total = ticketCounts.Values.Sum();
+
+            return new TicketCountsResult
+            {
+                StatusCounts = ticketCounts,
+                Total = total
+            };
+        }
+
+        public async Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserId(string userId)
+        {
+            var ticketCounts = await _ticketRepository.GetTicketCountsByUserIdAsync(userId);
+
+            foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
+            {
+                if (!ticketCounts.ContainsKey(status))
+                {
+                    ticketCounts[status] = 0;
+                }
+            }
+
+            return ticketCounts;
+        }
 
         public async Task<IEnumerable<TicketDTO>> GetTickets()
         {
@@ -104,9 +168,17 @@ namespace Ryze.System.Application.Services.Tickets
         }
 
 
+        //return tickets por status por usuário
         public async Task<IEnumerable<TicketDTO>> GetTicketsByUserIdAndStatus(string userId, StatusEnum status)
         {
-            var tickets = await _ticketRepository.GetTicketsByUserIdAndStatus(userId, status);
+            var tickets = await _ticketRepository.GetTicketsByUserIdAndStatusAsync(userId, status);
+            return tickets.Select(t => new TicketDTO(t));
+        }
+
+        //return tickets por status por cliente
+        public async Task<IEnumerable<TicketDTO>> GetTicketsByClientIdAndStatus(string userId, StatusEnum status)
+        {
+            var tickets = await _ticketRepository.GetTicketsByClientIdAndStatusAsync(userId, status);
             return tickets.Select(t => new TicketDTO(t));
         }
 
@@ -127,6 +199,19 @@ namespace Ryze.System.Application.Services.Tickets
             var result = await _ticketRepository.GetTicketsByNivelAsync(nivel);
             return _mapper.Map<IEnumerable<TicketDTO>>(result);
         }
+
+        //retorna qtd de paginas para paginação da pesquisa
+        public async Task<int> GetTotalTicketCountBySearchTerm(string searchTerm)
+        {
+            return await _ticketRepository.GetTotalTicketCountBySearchTermAsync(searchTerm);
+        }
+        //retorna resultado da pesquisa
+        public async Task<List<TicketDTO>> GetTicketsBySearchTerm(string searchTerm, int pageNumber, int pageSize)
+        {
+            var result = await _ticketRepository.GetTicketsBySearchTermAsync(searchTerm, pageNumber, pageSize);
+            return _mapper.Map<List<TicketDTO>>(result);
+        }
+
 
         #endregion
 
@@ -180,7 +265,6 @@ namespace Ryze.System.Application.Services.Tickets
 
             await _ticketRepository.UpdateAsync(entity);
         }
-
 
         #endregion
     }
