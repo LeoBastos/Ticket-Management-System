@@ -8,11 +8,13 @@ using Ryze.System.Application.Services.Users;
 using Ryze.System.Domain.Entity.Identity;
 using Ryze.System.Domain.Interfaces.Accounts;
 using Ryze.System.Domain.Interfaces.Tickets;
+using Ryze.System.Domain.Interfaces.UnitOfWork;
 using Ryze.System.Domain.Seed;
 using Ryze.System.Infra.Context;
 using Ryze.System.Infra.Identity;
 using Ryze.System.Infra.Repositories.Tickets;
 using Ryze.System.Infra.Repositories.Users;
+using Ryze.System.Infra.UnitOfWork;
 using Ryze.System.Web.helpers;
 using Ryze.System.Web.Mapping;
 
@@ -86,7 +88,7 @@ namespace Ryze.System.Web
 
             // Injection
             builder.Services.AddScoped<ISeedUserRoleInitial, SeedUserRoleInitial>();
-
+            builder.Services.AddScoped< IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<ITicketService, TicketService>();
             builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 

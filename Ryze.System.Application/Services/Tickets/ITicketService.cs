@@ -1,5 +1,4 @@
 ﻿using Ryze.System.Application.DTO.Tickets;
-using Ryze.System.Domain.Entity.Tickets;
 using Ryze.System.Domain.Enum;
 
 namespace Ryze.System.Application.Services.Tickets
@@ -20,8 +19,8 @@ namespace Ryze.System.Application.Services.Tickets
         Task<TicketCountsResult> GetTicketDashboardCountsByClientId(string clientId);
         //dashboard
         Task<TicketCountsResult> GetTicketDashboardCountsByUserId(string clientId);
-        
-        Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserId(string userId); 
+
+        Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserId(string userId);
 
         Task<IEnumerable<TicketDTO>> GetTickets();
         Task<IEnumerable<TicketDTO>> GetTicketsInativos();
@@ -48,7 +47,8 @@ namespace Ryze.System.Application.Services.Tickets
         //retorna qtd de paginas para paginação da pesquisa
         Task<int> GetTotalTicketCountBySearchTerm(string searchTerm);
         //retorna resultado da pesquisa
-        Task<List<TicketDTO>> GetTicketsBySearchTerm(string searchTerm, int pageNumber, int pageSize);
+        //Task<List<TicketDTO>> GetTicketsBySearchTerm(string searchTerm, int pageNumber, int pageSize);
+        Task<(List<TicketDTO> Tickets, Dictionary<string, string> ClientAvatars)> GetTicketsBySearchTerm(string searchTerm, int pageNumber, int pageSize);
 
 
         Task Add(TicketDTO ticketDto);

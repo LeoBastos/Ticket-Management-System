@@ -3,23 +3,24 @@ using Ryze.System.Application.DTO.Tickets;
 using Ryze.System.Domain.Entity.Tickets;
 using Ryze.System.Domain.Enum;
 using Ryze.System.Domain.Interfaces.Tickets;
+using Ryze.System.Domain.Interfaces.UnitOfWork;
 
 namespace Ryze.System.Application.Services.Tickets
 {
     public class TicketService : ITicketService
     {
         private ITicketRepository _ticketRepository;
-
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public TicketService(IMapper mapper, ITicketRepository ticketRepository)
+        public TicketService(IMapper mapper, ITicketRepository ticketRepository, IUnitOfWork unitOfWork)
         {
             _ticketRepository = ticketRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         #region Querys
-
         public async Task<int> GetTotalTicketCount()
         {
             return await _ticketRepository.GetTotalCountAsync();
@@ -47,7 +48,7 @@ namespace Ryze.System.Application.Services.Tickets
         public async Task<TicketCountsResult> GetTicketDashboardCountsByAdmin()
         {
             var ticketCounts = await _ticketRepository.GetTicketDashboardCountsByAdminAsync();
-            
+
             foreach (StatusEnum status in Enum.GetValues(typeof(StatusEnum)))
             {
                 if (!ticketCounts.ContainsKey(status))
@@ -206,10 +207,15 @@ namespace Ryze.System.Application.Services.Tickets
             return await _ticketRepository.GetTotalTicketCountBySearchTermAsync(searchTerm);
         }
         //retorna resultado da pesquisa
-        public async Task<List<TicketDTO>> GetTicketsBySearchTerm(string searchTerm, int pageNumber, int pageSize)
+        public async Task<(List<TicketDTO> Tickets, Dictionary<string, string> ClientAvatars)> GetTicketsBySearchTerm(string searchTerm, int pageNumber, int pageSize)
         {
-            var result = await _ticketRepository.GetTicketsBySearchTermAsync(searchTerm, pageNumber, pageSize);
-            return _mapper.Map<List<TicketDTO>>(result);
+            // Obtém os tickets e as imagens dos clientes
+            var (tickets, clientAvatars) = await _ticketRepository.GetTicketsBySearchTermAsync(searchTerm, pageNumber, pageSize);
+
+            // Mapeia os tickets para DTOs
+            var ticketDtos = _mapper.Map<List<TicketDTO>>(tickets);
+
+            return (ticketDtos, clientAvatars);
         }
 
 
@@ -220,12 +226,14 @@ namespace Ryze.System.Application.Services.Tickets
         {
             try
             {
-                var result = _mapper.Map<Ticket>(ticketDto);
-                await _ticketRepository.CreateAsync(result);
+                var ticket = _mapper.Map<Ticket>(ticketDto);
+                await _ticketRepository.CreateAsync(ticket);
+                await _unitOfWork.CommitAsync();
             }
             catch (Exception e)
             {
-                throw new Exception("Description: " + e);
+                await _unitOfWork.RollbackAsync();             
+                throw new Exception("Failed to add ticket. Description: " + e.Message, e);
             }
         }
 
@@ -233,13 +241,14 @@ namespace Ryze.System.Application.Services.Tickets
         {
             try
             {
-                var result = _mapper.Map<Ticket>(ticketDto);
-
-                await _ticketRepository.UpdateAsync(result);
+                var ticket = _mapper.Map<Ticket>(ticketDto);
+                await _ticketRepository.UpdateAsync(ticket);
+                await _unitOfWork.CommitAsync();
             }
             catch (Exception e)
             {
-                throw new Exception("Description: " + e);
+                await _unitOfWork.RollbackAsync();                
+                throw new Exception("Failed to update ticket. Description: " + e.Message, e);
             }
         }
 
@@ -247,25 +256,41 @@ namespace Ryze.System.Application.Services.Tickets
         {
             try
             {
-                var result = _mapper.Map<Ticket>(ticketDto);
-
-                await _ticketRepository.UpdatePatchAsync(result);
+                var ticket = _mapper.Map<Ticket>(ticketDto);
+                await _ticketRepository.UpdatePatchAsync(ticket);
+                await _unitOfWork.CommitAsync();
             }
             catch (Exception e)
             {
-                throw new Exception("Description: " + e);
+                await _unitOfWork.RollbackAsync();                
+                throw new Exception("Failed to partially update ticket. Description: " + e.Message, e);
             }
         }
 
         public async Task Remove(int id)
         {
-            var entity = _ticketRepository.GetTicketByIdAsync(id).Result;
+            try
+            {
+                var entity = await _ticketRepository.GetTicketByIdAsync(id);
+                entity.Remove();
+                await _ticketRepository.UpdateAsync(entity);
+                await _unitOfWork.CommitAsync();
 
-            entity.Remove();
-
-            await _ticketRepository.UpdateAsync(entity);
+                await UpdateTicketCounts();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to remove ticket. Description: " + e.Message, e);
+            }
         }
 
         #endregion
+
+        private async Task UpdateTicketCounts()
+        {
+            var adminCounts = await GetTicketDashboardCountsByAdmin();
+            var clientCounts = await GetTicketDashboardCountsByClientId("clientId");
+            var userCounts = await GetTicketDashboardCountsByUserId("userId");
+        }
     }
 }

@@ -5,7 +5,8 @@ namespace Ryze.System.Domain.Interfaces.Tickets
 {
     public interface ITicketRepository
     {
-        #region Querys
+        #region Querys      
+
         Task<int> GetTotalCountAsync();
         Task<List<Ticket>> GetPaginatedTicketsAsync(int pageNumber, int pageSize);
 
@@ -14,10 +15,10 @@ namespace Ryze.System.Domain.Interfaces.Tickets
         //dashboard
         Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByClientIdAsync(string userId);
         //dashboard
-        Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByUserIdAsync(string userId); 
+        Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByUserIdAsync(string userId);
 
 
-        Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserIdAsync(string userId); 
+        Task<Dictionary<StatusEnum, int>> GetTicketCountsByUserIdAsync(string userId);
 
         Task<int> GetTotalTicketCountByClientIdAsync(string clientId);
         Task<List<Ticket>> GetPaginatedTicketsByClientIdAsync(string clientId, int pageNumber, int pageSize);
@@ -37,7 +38,7 @@ namespace Ryze.System.Domain.Interfaces.Tickets
         //return tickets por status do usuário
         Task<IEnumerable<Ticket>> GetTicketsByUserIdAndStatusAsync(string userId, StatusEnum status);
 
-       //return tickets por status do cliente
+        //return tickets por status do cliente
         Task<IEnumerable<Ticket>> GetTicketsByClientIdAndStatusAsync(string userId, StatusEnum status);
 
         Task<IEnumerable<Ticket>> GetTicketsByStatusAsync(string status);
@@ -48,7 +49,8 @@ namespace Ryze.System.Domain.Interfaces.Tickets
         Task<int> GetTotalTicketCountBySearchTermAsync(string searchTerm);
 
         //retorna resultado da pesquisa
-        Task<List<Ticket>> GetTicketsBySearchTermAsync(string searchTerm, int pageNumber, int pageSize);
+       // Task<List<Ticket>> GetTicketsBySearchTermAsync(string searchTerm, int pageNumber, int pageSize);
+        Task<(IList<Ticket> Tickets, Dictionary<string, string> ClientAvatars)> GetTicketsBySearchTermAsync(string searchTerm, int pageNumber, int pageSize);
 
         #endregion
 

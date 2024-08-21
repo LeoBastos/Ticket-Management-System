@@ -12,8 +12,8 @@ using Ryze.System.Infra.Context;
 namespace Ryze.System.Infra.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240810201131_Initial_0001")]
-    partial class Initial_0001
+    [Migration("20240821212127_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -95,11 +95,7 @@ namespace Ryze.System.Web.Controllers
                     model.Email, model.Password, model.RememberMe, false);
 
                 if (result.Succeeded)
-                {
-                    if (!user.IsClient)
-                    {
-                        return RedirectToAction("Index", "Ticket");
-                    }
+                {                  
                     return RedirectToAction("Index", "Home");
                 }
 

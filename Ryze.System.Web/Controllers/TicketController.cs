@@ -8,14 +8,13 @@ using Ryze.System.Application.DTO.Tickets;
 using Ryze.System.Application.Services.Tickets;
 using Ryze.System.Application.Services.Users;
 using Ryze.System.Domain.Entity.Identity;
-using Ryze.System.Domain.Entity.Tickets;
 using Ryze.System.Domain.Enum;
 using Ryze.System.Infra.Context;
 using Ryze.System.Web.helpers;
 using Ryze.System.Web.Models;
 using Ryze.System.Web.Models.Tickets;
 using System.ComponentModel.DataAnnotations;
-using System.Net.Sockets;
+using System.Reflection;
 
 namespace Ryze.System.Web.Controllers
 {
@@ -138,7 +137,7 @@ namespace Ryze.System.Web.Controllers
                 }
 
                 return View("TicketByStatus", viewModel);
-            }            
+            }
         }
 
         public async Task<IActionResult> TicketsByUserAndStatusOpen()
@@ -181,7 +180,7 @@ namespace Ryze.System.Web.Controllers
 
             return await GetTicketsByUserAndStatus(StatusEnum.Fechado);
         }
-               
+
         [HttpGet]
         public async Task<IActionResult> SortTickets(string sortOrder, string sortType)
         {
@@ -190,8 +189,7 @@ namespace Ryze.System.Web.Controllers
             if (user == null) return Unauthorized();
 
             var tickets = new List<TicketViewModel>();
-
-            // Busca os tickets com base no tipo de usuário
+           
             var items = await _ticketService.GetTickets();
 
             if (user.IsClient)
@@ -246,7 +244,7 @@ namespace Ryze.System.Web.Controllers
                 }
             }
 
-            // Ordenação com base no sortType
+            
             tickets = sortOrder == "asc" ? sortType switch
             {
                 "Status" => tickets.OrderBy(t => t.Status).ToList(),
@@ -282,29 +280,7 @@ namespace Ryze.System.Web.Controllers
                 return Unauthorized();
             }
 
-            ViewBag.StatusList = Enum.GetValues(typeof(StatusEnum))
-            .Cast<StatusEnum>()
-            .Select(e => new SelectListItem
-            {
-                Value = e.ToString(),
-                Text = GetEnumDisplayName(e)
-            }).ToList();
-
-            ViewBag.NivelList = Enum.GetValues(typeof(NivelEnum))
-                .Cast<NivelEnum>()
-                .Select(e => new SelectListItem
-                {
-                    Value = e.ToString(),
-                    Text = GetEnumDisplayName(e)
-                }).ToList();
-
-            ViewBag.PriorityList = Enum.GetValues(typeof(PriorityEnum))
-                .Cast<PriorityEnum>()
-                .Select(e => new SelectListItem
-                {
-                    Value = e.ToString(),
-                    Text = GetEnumDisplayName(e)
-                }).ToList();
+            LoadViewBag();
 
             var model = new CreateTicketViewModel
             {
@@ -339,29 +315,7 @@ namespace Ryze.System.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewBag.StatusList = Enum.GetValues(typeof(StatusEnum))
-                .Cast<StatusEnum>()
-                .Select(e => new SelectListItem
-                {
-                    Value = e.ToString(),
-                    Text = GetEnumDisplayName(e)
-                }).ToList();
-
-            ViewBag.NivelList = Enum.GetValues(typeof(NivelEnum))
-                .Cast<NivelEnum>()
-                .Select(e => new SelectListItem
-                {
-                    Value = e.ToString(),
-                    Text = GetEnumDisplayName(e)
-                }).ToList();
-
-            ViewBag.PriorityList = Enum.GetValues(typeof(PriorityEnum))
-                .Cast<PriorityEnum>()
-                .Select(e => new SelectListItem
-                {
-                    Value = e.ToString(),
-                    Text = GetEnumDisplayName(e)
-                }).ToList();
+            LoadViewBag();
 
             TempData["Errors"] = "Ocorreu um erro ao cadastrar o ticket.";
             return View(model);
@@ -428,29 +382,7 @@ namespace Ryze.System.Web.Controllers
                 return NotFound();
             }
 
-            ViewBag.StatusList = Enum.GetValues(typeof(StatusEnum))
-               .Cast<StatusEnum>()
-               .Select(e => new SelectListItem
-               {
-                   Value = e.ToString(),
-                   Text = GetEnumDisplayName(e)
-               }).ToList();
-
-            ViewBag.NivelList = Enum.GetValues(typeof(NivelEnum))
-                .Cast<NivelEnum>()
-                .Select(e => new SelectListItem
-                {
-                    Value = e.ToString(),
-                    Text = GetEnumDisplayName(e)
-                }).ToList();
-
-            ViewBag.PriorityList = Enum.GetValues(typeof(PriorityEnum))
-                .Cast<PriorityEnum>()
-                .Select(e => new SelectListItem
-                {
-                    Value = e.ToString(),
-                    Text = GetEnumDisplayName(e)
-                }).ToList();
+            LoadViewBag();
 
 
             var model = new EditTicketViewModel
@@ -491,25 +423,25 @@ namespace Ryze.System.Web.Controllers
                 }
                 if (user.IsClient)
                 {
-					ticket.ClientId = model.ClientId;
-					ticket.ClientImage = model.ClientImage != null ? FileHelper.UploadImage(model.ClientImage).Result : ticket.ClientImage;
-					ticket.Description = model.Description;
+                    ticket.ClientId = model.ClientId;
+                    ticket.ClientImage = model.ClientImage != null ? FileHelper.UploadImage(model.ClientImage).Result : ticket.ClientImage;
+                    ticket.Description = model.Description;
                 }
                 else
                 {
-					ticket.ClientId = model.ClientId;
-					ticket.ClientImage = model.ClientImage != null ? FileHelper.UploadImage(model.ClientImage).Result : ticket.ClientImage;
-					ticket.Description = model.Description;
-					ticket.UserImage = model.UserImage != null ? FileHelper.UploadImage(model.UserImage).Result : ticket.UserImage;
-					ticket.Status = model.Status;
-					ticket.Nivel = model.Nivel;
-					ticket.Priority = model.Priority;
-					ticket.Resolution = model.Resolution;
-					ticket.UserId = user.Id;
+                    ticket.ClientId = model.ClientId;
+                    ticket.ClientImage = model.ClientImage != null ? FileHelper.UploadImage(model.ClientImage).Result : ticket.ClientImage;
+                    ticket.Description = model.Description;
+                    ticket.UserImage = model.UserImage != null ? FileHelper.UploadImage(model.UserImage).Result : ticket.UserImage;
+                    ticket.Status = model.Status;
+                    ticket.Nivel = model.Nivel;
+                    ticket.Priority = model.Priority;
+                    ticket.Resolution = model.Resolution;
+                    ticket.UserId = user.Id;
 
-				}
+                }
 
-				if (model.Status.ToString() == "Fechado")
+                if (model.Status.ToString() == "Fechado")
                 {
                     ticket.ClosingDate = DateTime.Now;
                 }
@@ -519,7 +451,7 @@ namespace Ryze.System.Web.Controllers
                 TempData["Success"] = "Ticket editado com Sucesso!";
 
                 return RedirectToAction("Index");
-            }            
+            }
 
             TempData["Errors"] = "Ocorreu um erro ao editar o ticket.";
 
@@ -561,10 +493,10 @@ namespace Ryze.System.Web.Controllers
             }
             var user = await _userService.GetUserById(model.UserId);
 
-            ticket.UserId = model.UserId;
-            ticket.UserImage = user.Avatar;
+            ticket.UserId = model.UserId;            
+            ticket.Status = StatusEnum.EmAndamento;
 
-            await _ticketService.UpdatePartial(ticket);
+            await _ticketService.Update(ticket);
 
             TempData["Success"] = $"Ticket encaminhado com Sucesso: {ticket.UserName}!";
 
@@ -589,7 +521,7 @@ namespace Ryze.System.Web.Controllers
                 UserId = userData.Id,
                 ClientName = clientName?.FullName,
                 Description = ticket.Description,
-                ClientId = ticket.ClientId
+                ClientId = ticket.ClientId,               
             };
 
             return PartialView("_TakeTicketPartial", model);
@@ -608,10 +540,9 @@ namespace Ryze.System.Web.Controllers
             }
             var user = await _userService.GetUserById(model.UserId);
 
-            ticket.UserId = model.UserId;
-            ticket.UserImage = user.Avatar;
+            ticket.UserId = model.UserId;                   
 
-            await _ticketService.UpdatePartial(ticket);
+            await _ticketService.Update(ticket);
 
             TempData["Success"] = $"Ticket assumido com Sucesso!";
 
@@ -641,19 +572,31 @@ namespace Ryze.System.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var user = await _userManager.GetUserAsync(HttpContext.User);
             var ticket = await _ticketService.GetTicketById(id);
             if (ticket == null)
             {
-                TempData["Errors"] = "Ticket não encontrado.";
-
-                return NotFound();
+                return Json(new { success = false, message = "Ticket não encontrado." });
             }
 
             await _ticketService.Remove(id);
 
-            TempData["Success"] = $"Ticket deletado com Sucesso!";
+            TicketCountsResult ticketCounts = null;
 
-            return RedirectToAction(nameof(Index));
+            if (User.IsInRole("Admin") || User.IsInRole("Gerente"))
+            {
+                ticketCounts = await _ticketService.GetTicketDashboardCountsByAdmin();
+            }
+            else if (User.IsInRole("Funcionario"))
+            {
+                ticketCounts = await _ticketService.GetTicketDashboardCountsByUserId(user.Id);
+            }
+            else if (User.IsInRole("Cliente"))
+            {
+                ticketCounts = await _ticketService.GetTicketDashboardCountsByClientId(user.Id);
+            }
+
+            return Json(new { success = true, message = "Ticket deletado com sucesso!", ticketCounts });
         }
 
 
@@ -661,12 +604,13 @@ namespace Ryze.System.Web.Controllers
         public async Task<IActionResult> Search(string searchTerm, int pageNumber = 1, int pageSize = 10)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
 
-            var tickets = await _ticketService.GetTicketsBySearchTerm(searchTerm, pageNumber, pageSize);
+            if (user == null) return Unauthorized();
+            
+            var (tickets, clientAvatars) = await _ticketService.GetTicketsBySearchTerm(searchTerm, pageNumber, pageSize);
 
             var viewModel = new TicketListViewModel
-            {                
+            {
                 SearchTerm = searchTerm,
                 PageNumber = pageNumber,
                 PageSize = pageSize,
@@ -674,7 +618,7 @@ namespace Ryze.System.Web.Controllers
                 {
                     Id = ticket.Id,
                     Description = ticket.Description,
-                    ClientImage = ticket?.ClientImage,
+                    ClientImage = clientAvatars.TryGetValue(ticket.ClientId, out var avatarUrl) ? avatarUrl : string.Empty,
                     OpeningDate = ticket.OpeningDate,
                     Resolution = ticket.Resolution,
                     UserImage = ticket.User?.Avatar,
@@ -689,8 +633,11 @@ namespace Ryze.System.Web.Controllers
                 }).ToList()
             };
 
-            return View("Index", viewModel); // Você pode reutilizar a View 'Index' ou criar uma nova View se preferir
+            return View("Index", viewModel);
         }
+
+
+        #region Private
 
         private async Task PopulateClientTicketsAsync(TicketListViewModel viewModel, ApplicationUser user, int pageNumber, int pageSize)
         {
@@ -762,15 +709,33 @@ namespace Ryze.System.Web.Controllers
             }
         }
 
-        private string GetEnumDisplayName(Enum enumValue)
+      
+        private void LoadViewBag()
         {
-            var displayAttribute = enumValue.GetType()
-                .GetField(enumValue.ToString())
-                .GetCustomAttributes(false)
-                .OfType<DisplayAttribute>()
-                .FirstOrDefault();
-
-            return displayAttribute != null ? displayAttribute.Name : enumValue.ToString();
+            ViewBag.StatusList = GetEnumSelectList<StatusEnum>();
+            ViewBag.NivelList = GetEnumSelectList<NivelEnum>();
+            ViewBag.PriorityList = GetEnumSelectList<PriorityEnum>();
         }
+
+        private List<SelectListItem> GetEnumSelectList<TEnum>() where TEnum : Enum
+        {
+            return Enum.GetValues(typeof(TEnum))
+                .Cast<TEnum>()
+                .Select(e => new SelectListItem
+                {
+                    Value = e.ToString(),
+                    Text = GetEnumDisplayName(e)
+                })
+                .ToList();
+        }
+
+        private string GetEnumDisplayName(Enum value)
+        {           
+            var field = value.GetType().GetField(value.ToString());
+            var attribute = field.GetCustomAttribute<DisplayAttribute>();
+            return attribute != null ? attribute.Name : value.ToString();
+        }
+
+        #endregion
     }
 }

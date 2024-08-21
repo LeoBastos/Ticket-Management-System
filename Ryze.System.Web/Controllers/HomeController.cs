@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Ryze.System.Application.DTO.Tickets;
 using Ryze.System.Application.Services.Tickets;
 using Ryze.System.Domain.Entity.Identity;
 using Ryze.System.Web.Models;
@@ -25,22 +26,31 @@ namespace Ryze.System.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var user = await _userManager.GetUserAsync(HttpContext.User);
+            TicketCountsResult viewModel;
 
-            if(User.IsInRole("Cliente"))
+            if (TempData["UpdatedTicketCounts"] != null)
             {
-                var viewModel = await _ticketService.GetTicketDashboardCountsByClientId(user.Id);
-                return View(viewModel);
-            }else if (User.IsInRole("Funcionario"))
-            {
-                var viewModel = await _ticketService.GetTicketDashboardCountsByUserId(user.Id);
-                return View(viewModel);
-            }else
-            {
-                var viewModel = await _ticketService.GetTicketDashboardCountsByAdmin();
-                return View(viewModel);
+                viewModel = TempData["UpdatedTicketCounts"] as TicketCountsResult;
             }
-           
+            else
+            {
+                var user = await _userManager.GetUserAsync(HttpContext.User);
+
+                if (User.IsInRole("Cliente"))
+                {
+                    viewModel = await _ticketService.GetTicketDashboardCountsByClientId(user.Id);
+                }
+                else if (User.IsInRole("Funcionario"))
+                {
+                    viewModel = await _ticketService.GetTicketDashboardCountsByUserId(user.Id);
+                }
+                else
+                {
+                    viewModel = await _ticketService.GetTicketDashboardCountsByAdmin();
+                }
+            }
+
+            return View(viewModel);
         }
 
         public IActionResult Privacy()

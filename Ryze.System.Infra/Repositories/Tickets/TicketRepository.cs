@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Ryze.System.Domain.Entity.Identity;
 using Ryze.System.Domain.Entity.Tickets;
 using Ryze.System.Domain.Enum;
 using Ryze.System.Domain.Interfaces.Tickets;
@@ -9,13 +11,16 @@ namespace Ryze.System.Infra.Repositories.Tickets
     public class TicketRepository : ITicketRepository
     {
         private readonly ApplicationDbContext _ticketContext;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TicketRepository(ApplicationDbContext context)
+        public TicketRepository(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _ticketContext = context;
+            _userManager = userManager;
         }
 
-        #region Querys
+        #region Querys   
+
         // Paginate para Funcionários
         public async Task<int> GetTotalCountAsync()
         {
@@ -54,7 +59,7 @@ namespace Ryze.System.Infra.Repositories.Tickets
         //dashboard
         public async Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByAdminAsync()
         {
-            var tickets = await _ticketContext.Tickets    
+            var tickets = await _ticketContext.Tickets
                .Where(t => t.IsActive == true)
                .GroupBy(t => t.Status)
                .Select(g => new { Status = g.Key, Count = g.Count() })
@@ -75,9 +80,10 @@ namespace Ryze.System.Infra.Repositories.Tickets
 
         //dashboard
         public async Task<Dictionary<StatusEnum, int>> GetTicketDashboardCountsByClientIdAsync(string userId)
-        {            
+        {
             var tickets = await _ticketContext.Tickets
                 .Where(t => t.ClientId == userId)
+                .Where(s => s.IsActive == true)
                 .GroupBy(t => t.Status)
                 .Select(g => new { Status = g.Key, Count = g.Count() })
                 .ToListAsync();
@@ -123,7 +129,7 @@ namespace Ryze.System.Infra.Repositories.Tickets
                 .Where(t => t.UserId == userId)
                 .GroupBy(t => t.Status)
                 .Select(g => new { Status = g.Key, Count = g.Count() })
-                .ToListAsync();           
+                .ToListAsync();
 
             var ticketCounts = tickets.ToDictionary(t => t.Status, t => t.Count);
 
@@ -226,7 +232,7 @@ namespace Ryze.System.Infra.Repositories.Tickets
         public async Task<IEnumerable<Ticket>> GetTicketsByStatusAsync(string status)
         {
             return await _ticketContext.Tickets
-                    .Where(p => p.IsActive == true && p.Status.ToString() == status)                    
+                    .Where(p => p.IsActive == true && p.Status.ToString() == status)
                     .ToListAsync();
         }
 
@@ -237,15 +243,23 @@ namespace Ryze.System.Infra.Repositories.Tickets
                 .Where(t => t.Client.FullName.Contains(searchTerm) || t.User.FullName.Contains(searchTerm))
                 .CountAsync();
         }
-        //retorna resultado da pesquisa
-        public async Task<List<Ticket>> GetTicketsBySearchTermAsync(string searchTerm, int pageNumber, int pageSize)
+        //retorna resultado da pesquisa       
+        public async Task<(IList<Ticket> Tickets, Dictionary<string, string> ClientAvatars)> GetTicketsBySearchTermAsync(
+                            string searchTerm, int pageNumber, int pageSize)
         {
-            return await _ticketContext.Tickets
+            var tickets = await _ticketContext.Tickets
                 .Where(t => t.Client.FullName.Contains(searchTerm) || t.User.FullName.Contains(searchTerm))
                 .OrderBy(t => t.OpeningDate)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+
+            var clientIds = tickets.Select(t => t.ClientId).Distinct().ToList();
+            var clients = await _userManager.Users
+                .Where(u => clientIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.Avatar);
+
+            return (tickets, clients);
         }
 
 
@@ -257,7 +271,6 @@ namespace Ryze.System.Infra.Repositories.Tickets
             _ticketContext.Add(ticket);
 
             await _ticketContext.SaveChangesAsync();
-
             return ticket;
         }
 
@@ -286,26 +299,12 @@ namespace Ryze.System.Infra.Repositories.Tickets
             }
 
             return existingTicket;
-
-            //var existingTicket = await _ticketContext.Tickets.FindAsync(ticket.Id);
-            //if (existingTicket != null)
-            //{
-            //    _ticketContext.Entry(existingTicket).State = EntityState.Detached;
-            //}
-
-            //_ticketContext.Update(ticket);
-            //await _ticketContext.SaveChangesAsync();
-
-            //return ticket;
         }
-
 
         public async Task<Ticket> RemoveAsync(Ticket ticket)
         {
             _ticketContext.Remove(ticket);
-
             await _ticketContext.SaveChangesAsync();
-
             return ticket;
         }
         #endregion
